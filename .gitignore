@@ -1,0 +1,6 @@
+session/
+data/
+settings.js
+node_modules/
+tmp/
+config.old.js
