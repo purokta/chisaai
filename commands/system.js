@@ -15,6 +15,17 @@ const supervised = () => !!process.env.CHISA_SUPERVISED
 
 module.exports = [
   {
+    name: 'stop',
+    aliases: ['matikan', 'shutdown'],
+    category: 'Owner',
+    ownerOnly: true,
+    desc: 'Matikan bot (jalankan lagi: npm start)',
+    async run(ctx) {
+      await ctx.reply('🛑 Bot dimatikan.\nNyalakan lagi di Termux: cd ~/chisa-ai && npm start')
+      setTimeout(() => process.exit(0), 1500)
+    }
+  },
+  {
     name: 'restart',
     hidden: true,
     ownerOnly: true,
@@ -25,6 +36,42 @@ module.exports = [
       }
       await ctx.reply('🔄 Memulai ulang bot...')
       setTimeout(() => process.exit(2), 1500)
+    }
+  },
+  {
+    name: 'deploy',
+    aliases: ['push', 'gitpush'],
+    category: 'Owner',
+    hidden: true,
+    ownerOnly: true,
+    usage: '[pesan commit] [paksa]',
+    desc: 'Push kode bot ke GitHub (repo di settings.js → github)',
+    async run(ctx) {
+      const gh = ctx.config.github || {}
+      if (!gh.token && !process.env.GITHUB_TOKEN) {
+        return ctx.reply(
+          '⚙️ Token GitHub belum diisi.\n\n1. Buat token: github.com/settings/tokens/new (centang "repo")\n2. Di Termux: nano ~/chisa-ai/settings.js lalu tambahkan\n   github: { token: \'ghp_xxxx\' },\n3. #restart, lalu kirim #deploy lagi.\n\n⚠️ Jangan kirim token lewat chat.'
+        )
+      }
+      let args = [...ctx.args]
+      const force = args[args.length - 1]?.toLowerCase() === 'paksa'
+      if (force) args.pop()
+      const msg = args.join(' ').slice(0, 120)
+      await ctx.react('⏳')
+      const out = await new Promise((resolve, reject) => {
+        const a = [path.join(ROOT, 'deploy.sh'), msg || '']
+        if (force) a.push('paksa')
+        execFile('bash', a, { cwd: ROOT, timeout: 5 * 60 * 1000, maxBuffer: 1 << 24 }, (err, stdout, stderr) => {
+          const scrub = t => String(t || '').split(gh.token || '\u0000').join('***').trim()
+          if (err) {
+            err.userMessage = 'Deploy gagal: ' + scrub(stderr || stdout || err.message).split('\n').slice(-3).join(' | ').slice(0, 300)
+            return reject(err)
+          }
+          resolve(scrub(stdout))
+        })
+      })
+      await ctx.react('✅')
+      await ctx.reply('🚀 ' + out.split('\n').slice(-1)[0])
     }
   },
   {

@@ -40,16 +40,28 @@ module.exports = {
   },
 
   // Thumbnail & musik menu: ganti file di folder assets/ (lihat assets/README.txt)
-  menu: { style: 'teks', thumbnail: true, music: true, city: 'Jakarta', timezone: 'Asia/Jakarta', tzLabel: 'WIB' },
+  menu: { style: 'teks', tagline: 'Kuchiba Chisa By Shipur', thumbnail: true, music: true, city: 'Jakarta', timezone: 'Asia/Jakarta', tzLabel: 'WIB' },
 
   weather: {},
   prayer: { city: 'Jakarta', country: 'Indonesia' },
+
+  // batas pemakaian per orang per hari (owner & VIP bebas), jeda minimal antar perintah
+  limit: { daily: 100, cooldownMs: 1200 },
+
+  // inventory buah & EXP game
+  rpg: { gameExp: 20, dropChance: 0.6, petikCooldownMin: 30 },
+
+  // cadangan otomatis folder session (disimpan lokal di Download/chisa-backup)
+  backup: { auto: true, everyHours: 24, keep: 5 },
 
   search: { results: 5 },
   enhance: { maxSide: 2048 },
 
   // Isi link zip kalau mau #update lewat WhatsApp (mis. link unduh zip repo GitHub kamu)
-  update: { url: '' },
+  update: { url: 'https://github.com/purokta/chisaai/archive/refs/heads/main.zip' }, // repo GitHub bot ini (username purokta, repo chisaai)
+
+  // Untuk #deploy (push kode ke GitHub). Isi token di settings.js, JANGAN di sini.
+  github: { user: 'purokta', repo: 'chisaai', branch: 'main', token: '' },
 
   downloader: {
     maxMB: 60,

@@ -26,8 +26,11 @@ module.exports = {
   //   openai: { baseUrl: 'https://api.groq.com/openai/v1', apiKey: 'KEY', model: 'llama-3.1-8b-instant' }
   // },
 
+  // ---- Opsional: token GitHub untuk perintah #deploy (buat di github.com/settings/tokens/new, centang "repo") ----
+  // github: { token: 'ghp_xxxxxxxx' },
+
   // ---- Opsional: link zip untuk perintah #update lewat WhatsApp ----
-  // update: { url: 'https://github.com/USERNAME/REPO/archive/refs/heads/main.zip' },
+  // update: { url: 'https://github.com/purokta/chisaai/archive/refs/heads/main.zip' },
 
   // ---- Opsional: menu (thumbnail & musik ada di folder assets/custom/) ----
   // menu: { thumbnail: true, music: true, city: 'Bandung' }, // city = kota untuk cuaca di menu

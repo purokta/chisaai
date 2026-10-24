@@ -30,7 +30,7 @@ Variasi: `bash update.sh /path/file.zip` atau `bash update.sh https://link-zip`.
 
 Lalu mulai ulang: kirim `#restart` dari WhatsApp (khusus owner, kalau bot dijalankan dengan `npm start`), atau Ctrl+C lalu `npm start`.
 
-**Update lewat WhatsApp (`#update`)**: taruh bot di repo GitHub milikmu, isi `update.url` di `settings.js` dengan link `https://github.com/USERNAME/REPO/archive/refs/heads/main.zip`, restart. Setelah itu kirim `#update` dan bot mengunduh, memasang, dan restart sendiri.
+**Update lewat WhatsApp (`#update`)**: bot ini sudah diarahkan ke repo **purokta/chisaai** (`https://github.com/purokta/chisaai/archive/refs/heads/main.zip`, repo harus Public). Ganti di `settings.js` → `update.url` kalau repo-mu lain. Setelah itu kirim `#update` dan bot mengunduh, memasang, dan restart sendiri.
 
 ## Pengaturan
 
@@ -53,7 +53,10 @@ Semua pengaturanmu ada di **`settings.js`** (dibuat otomatis dari `settings.exam
 | `#dl link` | TikTok, Instagram, YouTube, Facebook, dan link lain (X, Pinterest, dll. lewat yt-dlp) |
 | `#ytmp3 link` | Audio dari link |
 | `#play judul` / `#ytsearch` / `#lirik` | Musik: cari & kirim MP3, cari video, lirik |
-| `#ai` / `#img` / `#hd` / `#search` | Tanya AI, gambar AI, enhancer, cari info |
+| `#ai` / `#img` / `#hd` / `#search` | Tanya AI (**bisa baca gambar**: kirim/reply foto + `#ai pertanyaan`), gambar AI, enhancer, cari info |
+| `#ringkas link/teks` | Ringkas isi link atau teks panjang |
+| `#limit` | Sisa jatah pemakaian hari ini |
+| **Inventory** | `#petik` (buah gratis), `#inv` (level, EXP, koin, buah), `#makan buah` (jadi EXP), `#jual buah/semua` (jadi koin), `#harga`, `#topbuah`. Menang game = +20 EXP & peluang dapat buah |
 | `#pp` / `owner` | Foto profil (reply) / profil owner |
 | **Grup** (admin) | `#tagall #hidetag #kick #promote #demote #linkgrup #tutupgrup #bukagrup #admin #infogrup #hapus #antilink on/off #welcome on/off` |
 | **Alat** | `#calc #tr #qr #ssweb #tourl #ocr #tomp3 #tovn #ingatkan 10m pesan` |
@@ -67,9 +70,29 @@ Semua pengaturanmu ada di **`settings.js`** (dibuat otomatis dari `settings.exam
 - `#self` (atau `#private`): mode **SELF**. Bot hanya melayani owner dan **VIP**.
 - `#public`: mode **PUBLIC**, semua orang dilayani.
 - `#vip add 08xxx` / `#vip del 08xxx` / `#vip list` (juga bisa reply atau tag orangnya). VIP bawaan ada di `settings.js`.
-- `#autoreply on/off`, `#reload`, `#restart`, `#update`.
+- `#ban @orang` / `#unban @orang` (tag, reply, atau nomor), `#banlist`: pengguna diblokir diabaikan total.
+- `#setlimit 100`: batas perintah per orang per hari (0 = tanpa batas). Owner dan VIP selalu bebas. Ada juga jeda anti-spam antar perintah.
+- `#backup`: simpan cadangan login (`session`) ke `Download/chisa-backup` (otomatis tiap 24 jam, simpan 5 terbaru). Pulihkan: `bash restore.sh`.
+- `#stop`: matikan bot. Dari Termux: `bash stop.sh`. Nyalakan lagi: `npm start`.
+- `#autoreply on/off`, `#reload`, `#restart`, `#update`, `#deploy`.
 
 Owner = nomor di `settings.js` dan pesan yang diketik langsung dari nomor bot sendiri. Auto-reply di grup hanya jika bot di-tag, di-reply, atau diawali kata "chisa".
+
+## Backup & pulihkan login
+
+Backup otomatis tersimpan di `Download/chisa-backup` (atau `~/chisa-backup`) dan **tidak dikirim lewat WhatsApp**. File itu berisi login bot, jadi jangan dibagikan. Kalau login rusak atau HP direset: `cd ~/chisa-ai && bash restore.sh` lalu `npm start`. Atur di `settings.js`: `backup: { auto: true, everyHours: 24, keep: 5 }`, dan batas harian `limit: { daily: 100 }`.
+
+## Deploy ke GitHub (purokta/chisaai)
+
+```bash
+cd ~/chisa-ai
+printf 'session/\ndata/\nsettings.js\nnode_modules/\ntmp/\nbackups/\n.bot.pid\n' > .gitignore
+git init && git add . && git commit -m "CHISA-AI"
+git branch -M main
+git remote add origin https://github.com/purokta/chisaai.git   # kalau sudah ada: git remote set-url origin ...
+git push -u origin main
+```
+Login GitHub dengan token (`ghp_...`) sebagai password, atau `pkg install gh && gh auth login`. Update berikutnya: `git add . && git commit -m update && git push`. Folder `session` jangan pernah di-push.
 
 ## Gaya menu
 
@@ -96,6 +119,8 @@ Taruh filemu di `assets/custom/` dengan nama `thumbnail.jpg` dan `music.mp3` (am
 
 ## Kalau ada masalah
 
+- **Log penuh "Bad MAC" / "Failed to decrypt" atau pesan "Waiting for this message"**: kunci enkripsi kontak tidak cocok (biasanya karena bot jalan ganda, atau bot dihentikan dengan Ctrl+Z). Jalankan `bash fixsession.sh` (login tidak hilang, tidak perlu pairing ulang), lalu `npm start`. Untuk berhenti pakai **Ctrl+C**, bukan Ctrl+Z. Kalau terlanjur Ctrl+Z: ketik `kill %1`.
+
 - **"Waiting for this message" di WhatsApp**: pastikan bot hanya jalan **satu** (tutup tmux/Termux lain), lalu `npm start` ulang (v2.2 sudah menyimpan pesan untuk dikirim ulang). Kalau masih, hapus folder `session` dan pairing ulang.
 - **`#play` / link lain gagal**: `pkg install python` lalu `pip install -U yt-dlp`.
 
@@ -103,3 +128,14 @@ Taruh filemu di `assets/custom/` dengan nama `thumbnail.jpg` dan `music.mp3` (am
 - **Logout / error sesi**: hapus folder `session`, jalankan ulang.
 - **Error versi Baileys**: `npm i @whiskeysockets/baileys@latest --legacy-peer-deps`.
 - **"Program ffmpeg belum terpasang"**: `pkg install ffmpeg`.
+
+
+## Deploy update ke GitHub (`#deploy`)
+Kirim kode bot terbaru dari HP ke repo GitHub-mu langsung dari WhatsApp (khusus owner) atau Termux (`bash deploy.sh`).
+
+1. Pasang git sekali: `pkg install git`
+2. Buat token: https://github.com/settings/tokens/new (centang **repo**), lalu isi di `settings.js`:
+   `github: { token: 'ghp_xxxx' },` (user/repo bawaan: purokta/chisaai, ganti lewat `github: { user, repo }`)
+3. Kirim `#deploy` atau `#deploy pesan commit`. Kalau bentrok dengan isi GitHub: `#deploy paksa` (menimpa GitHub dengan versi di HP).
+
+Aman: `session/`, `data/`, dan `settings.js` (berisi token) otomatis tidak ikut ter-push (`.gitignore`), dan token tidak disimpan di `.git`.

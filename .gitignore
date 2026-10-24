@@ -1,6 +1,11 @@
+# JANGAN pernah di-push: login WhatsApp, pengaturan pribadi (berisi token), data
+node_modules/
 session/
 data/
-settings.js
-node_modules/
 tmp/
+backup/
+settings.js
 config.old.js
+.bot.pid
+*.log
+*.tar.gz

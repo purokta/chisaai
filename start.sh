@@ -3,6 +3,8 @@
 # Berhenti dengan Ctrl+C.
 cd "$(dirname "$0")"
 export CHISA_SUPERVISED=1
+echo $$ > .bot.pid
+trap 'rm -f .bot.pid' EXIT
 fails=0
 
 while true; do

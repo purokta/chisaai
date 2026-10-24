@@ -16,7 +16,8 @@ const SHORT = {
   dl: 'unduh video (TikTok/IG/YT/FB/dll)', ytmp3: 'link → audio',
   play: 'cari & kirim lagu', ytsearch: 'cari video YouTube', lirik: 'cari lirik lagu',
   waifu: 'gambar waifu', neko: 'gambar neko', megumin: 'gambar Megumin', shinobu: 'gambar Shinobu', animeinfo: 'info anime',
-  ai: 'tanya AI', img: 'buat gambar AI', hd: 'perjelas gambar',
+  makan: 'makan buah jadi EXP',
+  ai: 'tanya AI / baca gambar', ringkas: 'ringkas teks/link', img: 'buat gambar AI', hd: 'perjelas gambar',
   tagall: 'tag semua anggota', hidetag: 'tag semua (tanpa nama)', kick: 'keluarkan anggota', promote: 'jadikan admin', demote: 'cabut admin',
   linkgrup: 'link undangan', tutupgrup: 'tutup grup', bukagrup: 'buka grup', admin: 'daftar admin', infogrup: 'info grup', hapus: 'hapus pesan (reply)',
   antilink: 'blokir link grup WA', welcome: 'sambutan anggota baru',
@@ -25,9 +26,9 @@ const SHORT = {
   cuaca: 'cuaca kota', kurs: 'kurs mata uang', gempa: 'gempa terbaru', jam: 'jam kota lain', wiki: 'ringkasan Wikipedia',
   sholat: 'jadwal sholat', quran: 'ayat Al-Qur\'an',
   tebakkata: 'tebak kata', asahotak: 'asah otak', caklontong: 'tebakan Cak Lontong', susunkata: 'susun kata acak', tebakgambar: 'tebak gambar',
-  tebakbendera: 'tebak bendera', hint: 'petunjuk game', nyerah: 'menyerah', skor: 'papan skor',
+  tebakbendera: 'tebak bendera', petik: 'petik buah', inv: 'inventory buah', jual: 'jual buah', harga: 'harga buah', topbuah: 'peringkat koin', hint: 'petunjuk game', nyerah: 'menyerah', skor: 'papan skor',
   owner: 'profil owner', pp: 'foto profil (reply)', search: 'cari info di internet', status: 'status bot & server',
-  menustyle: 'gaya menu teks/poll/tombol', private: 'mode SELF (owner+VIP)', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
+  menustyle: 'gaya menu teks/poll/tombol', private: 'mode SELF (owner+VIP)', ban: 'blokir pengguna', unban: 'buka blokir', setlimit: 'atur limit harian', limit: 'sisa jatah hari ini', backup: 'backup login', stop: 'matikan bot', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
 }
 
 const EMO = {
@@ -36,8 +37,8 @@ const EMO = {
   tagall: '📢', hidetag: '👻', kick: '🚪', promote: '⬆️', demote: '⬇️', linkgrup: '🔗', tutupgrup: '🔒', bukagrup: '🔓', admin: '👑',
   infogrup: 'ℹ️', hapus: '🗑️', antilink: '🚫', welcome: '👋', calc: '🧮', tr: '🌍', qr: '🔳', ssweb: '📸', tourl: '☁️', ocr: '📝',
   tomp3: '🎶', tovn: '🎙️', ingatkan: '⏰', cuaca: '🌤️', kurs: '💱', gempa: '🌋', jam: '🕒', wiki: '📚', sholat: '🕌', quran: '📖',
-  tebakkata: '🎮', asahotak: '🧠', caklontong: '🤪', susunkata: '🔀', tebakgambar: '🖼️', tebakbendera: '🚩', hint: '💡', nyerah: '🏳️', skor: '🏆',
-  owner: '👤', pp: '🧑', status: '📡', menustyle: '📋', private: '🔒', public: '🔓', autoreply: '💬', vip: '⭐'
+  tebakkata: '🎮', asahotak: '🧠', caklontong: '🤪', susunkata: '🔀', tebakgambar: '🖼️', tebakbendera: '🚩', petik: '🧺', inv: '🎒', jual: '💰', harga: '🏷️', topbuah: '🏅', hint: '💡', nyerah: '🏳️', skor: '🏆',
+  makan: '😋', ringkas: '📝', ban: '🚫', unban: '✅', setlimit: '📊', limit: '📊', backup: '💾', stop: '🛑', owner: '👤', pp: '🧑', status: '📡', menustyle: '📋', private: '🔒', public: '🔓', autoreply: '💬', vip: '⭐'
 }
 const short = c => SHORT[c.name] || (c.desc.length > 34 ? c.desc.slice(0, 33) + '…' : c.desc)
 
@@ -51,24 +52,24 @@ function groupCommands(ctx) {
   return { groups, cats }
 }
 
-const LINE = '└────────────'
-const box = (title, lines) => `「 ${title} 」\n│\n${lines.map(l => '│ ' + l).join('\n')}\n${LINE}`
+const LABEL = { Downloader: 'Download' }
 const item = (c, p) => `${EMO[c.name] || '•'} ${p}${c.name}`
+const title = cat => `*${LABEL[cat] || cat} menu*`
 
-// menu utama: hanya nama perintah, 2 per baris (ringkas)
-function compact(cat, cmds, p) {
-  const rows = []
-  for (let i = 0; i < cmds.length; i += 2) rows.push(cmds.slice(i, i + 2).map(c => item(c, p)).join('    '))
-  return box(`${ICON[cat] || '📌'} ${cat.toUpperCase()}`, rows)
-}
+// menu utama: judul tebal + satu perintah per baris (tanpa keterangan)
+const compact = (cat, cmds, p) => title(cat) + '\n' + cmds.map(c => item(c, p)).join('\n')
 // menu <kategori>: lengkap dengan cara pakai singkat
-const detail = (cat, cmds, p) =>
-  box(`${ICON[cat] || '📌'} ${cat.toUpperCase()}`, cmds.map(c => `${item(c, p)}${c.usage ? ' ' + c.usage : ''} — ${short(c)}`))
+const detail = (cat, cmds, p) => title(cat) + '\n' + cmds.map(c => `${item(c, p)}${c.usage ? ' ' + c.usage : ''} — ${short(c)}`).join('\n')
 const footer = (config, p) => `💡 ketik ${p}menu <kategori> untuk rincian\n© ${config.botName} • ${brand.mark()}`
 
-// Kartu: banner di atas, di bawah banner ada jam + cuaca. Kalau banner gagal, kirim teks biasa (jam & cuaca ikut di teks).
-async function sendCard(ctx, text, t, cuaca) {
+// Kartu seperti link: banner di atas, di bawahnya tanggal+jam+cuaca singkat, lalu tagline. Kalau banner gagal -> teks biasa.
+async function sendCard(ctx, text, t) {
   const { config } = ctx
+  const cw = status.cachedWeatherShort()
+  const line1 = `${t.pendek} • ${t.jam}${cw ? ' • ' + cw : ''}`
+  const tagline = config.menu?.tagline || 'Kuchiba Chisa By Shipur'
+  const tt = config.owner?.tiktok
+  const link = config.menu?.link || (tt ? `https://www.tiktok.com/@${String(tt).replace(/^@/, '')}` : 'https://github.com/purokta/chisaai')
   const th = config.menu?.thumbnail !== false && assets.thumbnail()
   if (th) {
     try {
@@ -77,10 +78,12 @@ async function sendCard(ctx, text, t, cuaca) {
         text,
         contextInfo: {
           externalAdReply: {
-            title: `⏰ ${t.jam}  •  ${t.tanggal}`,
-            body: cuaca ? `🌤️ ${cuaca}` : config.botName,
+            title: line1,
+            body: tagline,
             thumbnail: thumb,
             mediaType: 1,
+            mediaUrl: link,
+            sourceUrl: link,
             renderLargerThumbnail: true,
             showAdAttribution: false
           }
@@ -91,7 +94,7 @@ async function sendCard(ctx, text, t, cuaca) {
       console.log('[menu] kartu thumbnail gagal:', e?.message || e)
     }
   }
-  await ctx.reply(`⏰ ${t.jam} • ${t.tanggal}${cuaca ? '\n🌤️ ' + cuaca : ''}\n\n${text}`)
+  await ctx.reply(`${line1}\n${tagline}\n\n${text}`)
 }
 
 async function sendMusic(ctx) {
@@ -133,9 +136,9 @@ module.exports = [
       }
 
       const t = status.now()
-      // cuaca dari cache; kalau belum ada, tunggu maksimal 1,2 detik (menu tidak boleh lambat karena cuaca)
-      const cuaca = await Promise.race([status.weather(), new Promise(r => setTimeout(() => r(status.cachedWeather()), 1200))])
-      const head = box(`🤖 ${config.botName}`, [`Halo ${ctx.pushName || 'kak'}! 👋`, `by ${brand.mark()}`])
+      // cuaca hanya dari cache (disiapkan di belakang layar), menu tidak pernah menunggu internet untuk cuaca
+      status.refreshWeather()
+      const head = `*🤖 ${config.botName}* • by ${brand.mark()}\nHalo ${ctx.pushName || 'kak'}! 👋`
 
       const style = db.get('menuStyle', config.menu?.style || 'teks')
       let done = false
@@ -156,7 +159,7 @@ module.exports = [
             names.push('🎵 Putar Musik')
             options['🎵 Putar Musik'] = '#menumusik'
           }
-          await sendCard(ctx, head + '\n\nPilih kategori di polling bawah 👇\nAtau ketik: menu <kategori>', t, cuaca)
+          await sendCard(ctx, head + '\n\nPilih kategori di polling bawah 👇\nAtau ketik: menu <kategori>', t)
           const res = await ctx.sock.sendMessage(ctx.jid, { poll: { name: '📂 Pilih Kategori Menu', values: names, selectableCount: 1 } })
           if (!res?.key?.id) throw new Error('polling tidak terkirim')
           polls.register(res.key.id, { chat: ctx.jid, options })
@@ -197,7 +200,7 @@ module.exports = [
         }
       }
       if (!done) {
-        await sendCard(ctx, head + '\n\n' + cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), t, cuaca)
+        await sendCard(ctx, head + '\n\n' + cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), t)
       }
       // musik menu (voice note) otomatis menyusul setelah menu
       await sendMusic(ctx)

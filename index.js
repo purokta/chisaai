@@ -11,7 +11,9 @@ const db = require('./lib/db')
 const status = require('./lib/status')
 const assets = require('./lib/assets')
 const group = require('./lib/group')
+const backup = require('./lib/backup')
 const polls = require('./lib/polls')
+const { log, banner } = require('./lib/log')
 
 const ask = q =>
   new Promise(res => {
@@ -93,16 +95,17 @@ async function start() {
 
   sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
     if (connection === 'open') {
-      console.log(`✅ ${config.botName} terhubung! (${loader.list().length} perintah aktif)`)
+      log.ok(`${config.botName} terhubung • ${loader.list().length} perintah`)
       reminders.attach(sock)
       warmUp()
+      backup.startAuto()
     }
     if (connection === 'close') {
       const code = lastDisconnect?.error?.output?.statusCode
       if (code === B.DisconnectReason.loggedOut) {
-        console.log('Logout. Hapus folder "session" lalu jalankan ulang.')
+        log.err('Logout. Hapus folder "session" lalu jalankan ulang.')
       } else {
-        console.log('Koneksi terputus, menyambung ulang...')
+        log.warn('Koneksi terputus, menyambung ulang...')
         setTimeout(start, 3000)
       }
     }
@@ -182,7 +185,7 @@ function welcomeHandler(sock) {
 process.on('uncaughtException', e => console.log('[uncaught]', e?.message || e))
 process.on('unhandledRejection', e => console.log('[unhandled]', e?.message || e))
 
-console.log(`${config.botName} by ${require('./lib/brand').mark()} — memuat perintah...`)
-console.log(`${loader.load()} perintah dimuat.`)
+banner(require('./package.json').version)
+log.info(`${loader.load()} perintah dimuat`)
 cleanTmp()
 start()
