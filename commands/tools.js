@@ -159,6 +159,7 @@ module.exports = [
     usage: '[pack|author]',
     desc: 'Ganti nama pack stiker (reply stikernya)',
     async run(ctx) {
+      if (ctx.platform === 'telegram') return ctx.reply('Ganti nama pack hanya ada di WhatsApp. Di Telegram pakai /buatpack untuk pack Chisa.')
       const r = await mediaBuffer(ctx, ['sticker'])
       if (!r) return ctx.reply(`Reply stiker dengan ${ctx.prefix}take nama pack|author`)
       const [pack, author] = ctx.text.split('|').map(s => s.trim())

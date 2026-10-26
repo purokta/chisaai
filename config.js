@@ -43,6 +43,8 @@ config.ownerLids = (config.ownerLids || []).map(String)
 config.vip = (config.vip || [])
   .map(v => (isObj(v) ? { name: v.name || config.vipLabel, number: normalizeNumber(v.number) } : { name: config.vipLabel, number: normalizeNumber(v) }))
   .filter(v => v.number)
+config.telegram.ownerIds = (config.telegram.ownerIds || []).map(String)
+config.telegram.vipIds = (config.telegram.vipIds || []).map(String)
 config.normalizeNumber = normalizeNumber
 
 module.exports = config

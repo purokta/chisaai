@@ -4,6 +4,7 @@ const status = require('../lib/status')
 const brand = require('../lib/brand')
 const buttons = require('../lib/buttons')
 const polls = require('../lib/polls')
+const diony = require('../lib/diony')
 
 const ORDER = ['Stiker', 'Downloader', 'Musik', 'Anime', 'AI', 'Grup', 'Alat', 'Info', 'Islami', 'Game', 'Lainnya', 'Owner']
 const ICON = {
@@ -45,7 +46,7 @@ const short = c => SHORT[c.name] || (c.desc.length > 34 ? c.desc.slice(0, 33) + 
 function groupCommands(ctx) {
   const groups = {}
   for (const c of ctx.commands) {
-    if (c.hidden || (c.ownerOnly && !ctx.isOwner)) continue
+    if (c.hidden || (c.ownerOnly && !ctx.isOwner) || (c.platform && c.platform !== ctx.platform)) continue
     ;(groups[c.category || 'Lainnya'] ||= []).push(c)
   }
   const cats = [...ORDER.filter(c => groups[c]), ...Object.keys(groups).filter(c => !ORDER.includes(c))]
@@ -112,6 +113,53 @@ async function sendMusic(ctx) {
   }
 }
 
+// ---- Telegram: menu dengan tombol inline (bisa dipencet), kategori diganti di tempat ----
+async function runTelegram(ctx, groups, cats, want) {
+  const { config } = ctx
+  const p = '/'
+  const rows = []
+  const btn = cats.map(c => ({ text: `${ICON[c] || '📌'} ${LABEL[c] || c}`, data: '#menu ' + c.toLowerCase() }))
+  for (let i = 0; i < btn.length; i += 3) rows.push(btn.slice(i, i + 3))
+  const extra = [{ text: '📋 Semua', data: '#menu semua' }]
+  if (config.menu?.music !== false && assets.music()) extra.push({ text: '🎵 Musik', data: '#menumusik' })
+  rows.push(extra)
+  const back = [...rows, [{ text: '🏠 Menu utama', data: '#menu' }]]
+
+  // tampilkan di pesan menu yang sama (kalau dari tombol & muat), kalau tidak kirim pesan baru
+  const view = (text, buttons) => {
+    const cb = ctx.tgCb
+    if (cb && (!cb.photo || text.length <= 1000)) return ctx.send({ text, edit: { id: cb.messageId, photo: cb.photo }, tgButtons: buttons })
+    return ctx.send({ text, tgButtons: buttons })
+  }
+
+  if (want === 'semua') return ctx.send({ text: cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), tgButtons: [[{ text: '🏠 Menu utama', data: '#menu' }]] })
+  if (want) {
+    const cat = cats.find(c => c.toLowerCase() === want)
+    if (!cat) return ctx.reply(`Kategori "${want}" tidak ada.\nPilih: ${cats.map(c => c.toLowerCase()).join(', ')}`)
+    return view(detail(cat, groups[cat], p) + '\n\n' + footer(config, p), back)
+  }
+
+  const t = status.now()
+  status.refreshWeather()
+  const cw = status.cachedWeatherShort()
+  const line1 = `${t.pendek} • ${t.jam}${cw ? ' • ' + cw : ''}`
+  const tagline = config.menu?.tagline || 'Kuchiba Chisa By Shipur'
+  const caption = `*🤖 ${config.botName}* • by ${brand.mark()}\nHalo ${ctx.pushName || 'kak'}! 👋\n${line1}\n${tagline}\n\nPilih kategori di tombol bawah 👇`
+  if (ctx.tgCb) return view(caption, rows)
+  const th = config.menu?.thumbnail !== false && assets.thumbnail()
+  let sent = false
+  if (th) {
+    try {
+      await ctx.send({ image: await assets.thumbJpeg(th), caption, tgButtons: rows })
+      sent = true
+    } catch (e) {
+      console.log('[menu] foto telegram gagal:', e?.message || e)
+    }
+  }
+  if (!sent) await ctx.send({ text: caption, tgButtons: rows })
+  await sendMusic(ctx)
+}
+
 module.exports = [
   {
     name: 'menu',
@@ -126,6 +174,12 @@ module.exports = [
       const { groups, cats } = groupCommands(ctx)
       let want = (ctx.args[0] || '').toLowerCase()
       if (want === 'download') want = 'downloader'
+
+      if (ctx.platform === 'telegram') return runTelegram(ctx, groups, cats, want)
+      // menu gabungan (Chisa + fitur tambahan)
+      {
+        try { return await require('../lib/dionymenu').run(ctx, sendCard, sendMusic) } catch (e) { console.log('[menu diony]', e?.message || e) }
+      }
 
       // menu <kategori> / menu semua
       if (want === 'semua') return ctx.reply(cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p))

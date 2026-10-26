@@ -1,5 +1,5 @@
 // Stiker: gambar/video -> stiker, dan stiker -> gambar
-const { createSticker, addExif, stickerToImage } = require('../lib/sticker')
+const { createSticker, addExif, stickerToImage, isWebm } = require('../lib/sticker')
 
 module.exports = [
   {
@@ -17,8 +17,12 @@ module.exports = [
       }
       await ctx.react('⏳')
       const buf = await ctx.download(t.node, t.type)
-      // stiker orang lain di-reply -> diberi nama pack kita; selain itu dikonversi dulu
-      const webp = t.type === 'sticker' ? addExif(buf) : await createSticker(buf, t.type)
+      const tg = ctx.platform === 'telegram'
+      if (tg && t.type === 'sticker' && !isWebm(buf) && buf.toString('ascii', 8, 12) !== 'WEBP') {
+        return ctx.reply('Stiker animasi Telegram (.tgs) belum bisa disalin. Pakai stiker biasa atau stiker video.')
+      }
+      // stiker orang lain di-reply -> diberi nama pack kita (WhatsApp); Telegram: kirim ulang apa adanya
+      const webp = t.type === 'sticker' ? (tg ? buf : addExif(buf)) : await createSticker(buf, t.type, undefined, ctx.platform)
       await ctx.send({ sticker: webp })
       await ctx.react('✅')
     }
@@ -37,7 +41,7 @@ module.exports = [
       try {
         out = await stickerToImage(buf)
       } catch (e) {
-        if (buf.includes('ANIM')) return ctx.reply('Stiker animasi belum bisa dijadikan gambar di perangkat ini.')
+        if (buf.includes('ANIM') || isWebm(buf)) return ctx.reply('Stiker animasi belum bisa dijadikan gambar di perangkat ini.')
         throw e
       }
       if (out.type === 'video') await ctx.send({ video: out.buffer, gifPlayback: true, caption: '🎞️ Stiker animasi' })

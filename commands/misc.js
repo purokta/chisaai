@@ -15,7 +15,7 @@ module.exports = [
     hidden: true,
     desc: 'Tampilkan ID pengirim (untuk pengaturan owner)',
     async run(ctx) {
-      await ctx.reply(`Pengirim : ${ctx.sender}\nChat     : ${ctx.jid}\nOwner?   : ${ctx.isOwner ? 'ya' : 'tidak'}`)
+      await ctx.reply(ctx.platform === 'telegram' ? `ID Telegram kamu: ${ctx.tgFrom}\nChat: ${ctx.jid.split('@')[0]}\nOwner? ${ctx.isOwner ? 'ya' : 'belum — isi telegram.ownerIds di settings.js dengan ID di atas'}` : `Pengirim : ${ctx.sender}\nChat     : ${ctx.jid}\nOwner?   : ${ctx.isOwner ? 'ya' : 'tidak'}`)
     }
   },
   {

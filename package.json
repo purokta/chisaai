@@ -15,7 +15,21 @@
   "license": "MIT",
   "dependencies": {
     "@whiskeysockets/baileys": "6.7.18",
+    "axios": "0.27.2",
+    "chalk": "4.1.2",
+    "cheerio": "1.0.0",
+    "fflate": "^0.8.2",
+    "file-type": "16.5.3",
+    "form-data": "^4.0.0",
+    "human-readable": "^0.2.1",
     "jimp": "0.22.12",
-    "pino": "^9.0.0"
+    "moment-timezone": "^0.5.45",
+    "node-fetch": "2.7.0",
+    "node-webpmux": "^3.2.1",
+    "pino": "^9.0.0",
+    "qrcode": "^1.5.4"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.33.5"
   }
 }

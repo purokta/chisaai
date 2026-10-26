@@ -101,7 +101,7 @@ module.exports = [
       const g = await need(ctx, { botAdmin: true })
       if (!g) return
       const code = await ctx.sock.groupInviteCode(ctx.jid)
-      await ctx.reply(`🔗 https://chat.whatsapp.com/${code}`)
+      await ctx.reply(`🔗 ${/^https?:/.test(code) ? code : 'https://chat.whatsapp.com/' + code}`)
     }
   },
   {

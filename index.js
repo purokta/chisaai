@@ -3,6 +3,7 @@ const pino = require('pino')
 const readline = require('readline')
 const config = require('./config')
 const loader = require('./lib/loader')
+const diony = require('./lib/diony')
 const handler = require('./lib/handler')
 const { loadBaileys } = require('./lib/baileys')
 const { cleanTmp } = require('./lib/ffmpeg')
@@ -52,6 +53,7 @@ async function start() {
     logger: pino({ level: 'silent' }),
     auth: state,
     printQRInTerminal: false,
+    // PENTING: nama platform harus salah satu yang dikenal WhatsApp (Ubuntu/Windows/macOS). Nama kustom membuat pairing code ditolak ("Couldn't link device").
     browser: ['Ubuntu', 'Chrome', '20.0.04'],
     markOnlineOnConnect: false,
     syncFullHistory: false,
@@ -60,6 +62,15 @@ async function start() {
     msgRetryCounterCache: retryCounter,
     getMessage: async key => store.get(key?.id)
   })
+
+  // dipakai pengirim yang melewati sendMessage (mis. memakai ulang media banner)
+  sock.trackSent = (key, message) => {
+    remember(key, message)
+    if (key?.id) {
+      sentIds.add(key.id)
+      setTimeout(() => sentIds.delete(key.id), 5 * 60 * 1000)
+    }
+  }
 
   // catat ID pesan yang dikirim bot supaya tidak dibalas lagi
   const rawSend = sock.sendMessage.bind(sock)
@@ -188,4 +199,18 @@ process.on('unhandledRejection', e => console.log('[unhandled]', e?.message || e
 banner(require('./package.json').version)
 log.info(`${loader.load()} perintah dimuat`)
 cleanTmp()
-start()
+if (config.whatsapp?.enabled !== false) start()
+else log.info('WhatsApp dimatikan (whatsapp.enabled = false)')
+
+// Telegram berjalan bersamaan dengan WhatsApp kalau token diisi di settings.js
+telegram
+  .start({ handler, env: { sentIds, reload: () => loader.load() } })
+  .then(t => {
+    if (!t) return
+    dashboard.set('tg', 'on')
+    if (config.whatsapp?.enabled === false) dashboard.start()
+    reminders.attach(t.sock)
+    warmUp()
+    backup.startAuto()
+  })
+  .catch(e => log.err('Telegram: ' + (e?.message || e)))

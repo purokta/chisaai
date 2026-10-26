@@ -18,7 +18,7 @@ module.exports = [
       const Jimp = require('jimp')
       const font = await T.pickFont(Jimp, text)
       const png = await T.render(Jimp, font, text)
-      await ctx.send({ sticker: await createSticker(png, 'image') })
+      await ctx.send({ sticker: await createSticker(png, 'image', undefined, ctx.platform) })
       await ctx.react('✅')
     }
   },
@@ -70,7 +70,7 @@ module.exports = [
         for (let i = 0; i < 6; i++) frames.push(last) // tahan di akhir
       }
 
-      await ctx.send({ sticker: await framesToSticker(frames, blink ? 3 : 3) })
+      await ctx.send({ sticker: await framesToSticker(frames, 3, undefined, ctx.platform) })
       await ctx.react('✅')
     }
   }
