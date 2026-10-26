@@ -13,6 +13,7 @@ fi
 [ -f "$F" ] || { echo "!! Backup tidak ditemukan. Pakai: bash restore.sh /path/file.tar.gz"; exit 1; }
 bash stop.sh >/dev/null 2>&1 || true
 [ -d session ] && mv session "session.lama.$(date +%s)"
+[ -f data/db.json ] && cp data/db.json "data/db.lama.$(date +%s).json"
 tar -xzf "$F" -C .
-echo "✅ Session dipulihkan dari: $F"
+echo "✅ Session + database dipulihkan dari: $F"
 echo "   Jalankan bot: npm start"

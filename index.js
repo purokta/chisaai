@@ -15,6 +15,9 @@ const group = require('./lib/group')
 const backup = require('./lib/backup')
 const polls = require('./lib/polls')
 const { log, banner } = require('./lib/log')
+const telegram = require('./lib/telegram')
+const dashboard = require('./lib/dashboard')
+if (!require('./lib/lock').acquire()) process.exit(0)
 
 const ask = q =>
   new Promise(res => {
@@ -106,7 +109,9 @@ async function start() {
 
   sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
     if (connection === 'open') {
-      log.ok(`${config.botName} terhubung • ${loader.list().length} perintah`)
+      log.ok(`${config.botName} v${require('./package.json').version} terhubung • ${loader.list().length} perintah`)
+      dashboard.set('wa', 'on')
+      dashboard.start()
       reminders.attach(sock)
       warmUp()
       backup.startAuto()
@@ -114,8 +119,10 @@ async function start() {
     if (connection === 'close') {
       const code = lastDisconnect?.error?.output?.statusCode
       if (code === B.DisconnectReason.loggedOut) {
+        dashboard.set('wa', 'down')
         log.err('Logout. Hapus folder "session" lalu jalankan ulang.')
       } else {
+        dashboard.set('wa', 'down')
         log.warn('Koneksi terputus, menyambung ulang...')
         setTimeout(start, 3000)
       }
@@ -198,6 +205,14 @@ process.on('unhandledRejection', e => console.log('[unhandled]', e?.message || e
 
 banner(require('./package.json').version)
 log.info(`${loader.load()} perintah dimuat`)
+{
+  setImmediate(() => {
+    try {
+      const s = diony.boot()
+      log.info(`Fitur tambahan siap: ${s.byName.size} perintah / ${s.plugins.length} plugin${s.failed.length ? ` (${s.failed.length} gagal)` : ''}`)
+    } catch (e) { log.err('Fitur tambahan gagal dimuat: ' + (e?.message || e)) }
+  })
+}
 cleanTmp()
 if (config.whatsapp?.enabled !== false) start()
 else log.info('WhatsApp dimatikan (whatsapp.enabled = false)')

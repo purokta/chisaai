@@ -28,6 +28,9 @@ const SHORT = {
   sholat: 'jadwal sholat', quran: 'ayat Al-Qur\'an',
   tebakkata: 'tebak kata', asahotak: 'asah otak', caklontong: 'tebakan Cak Lontong', susunkata: 'susun kata acak', tebakgambar: 'tebak gambar',
   tebakbendera: 'tebak bendera', petik: 'petik buah', inv: 'inventory buah', jual: 'jual buah', harga: 'harga buah', topbuah: 'peringkat koin', hint: 'petunjuk game', nyerah: 'menyerah', skor: 'papan skor',
+  pin: 'sematkan pesan (reply)', unpin: 'lepas sematan', mute: 'bisukan anggota', unmute: 'buka bisu', bangrup: 'banned dari grup', unbangrup: 'buka banned grup', warn: 'peringatan (3x keluar)', resetwarn: 'hapus peringatan', warns: 'cek peringatan', setrules: 'atur aturan grup', rules: 'lihat aturan grup', id: 'ID Telegram', userinfo: 'info pengguna', broadcast: 'kirim ke semua pengguna',
+  buatpack: 'buat pack stiker Chisa', pack: 'pack stiker Chisa', tambahpack: 'tambah stiker ke pack', hapuspack: 'hapus stiker dari pack',
+  daily: 'login harian (koin & EXP)', gacha: 'gacha karakter anime', koleksi: 'koleksi karakter',
   owner: 'profil owner', pp: 'foto profil (reply)', search: 'cari info di internet', status: 'status bot & server',
   menustyle: 'gaya menu teks/poll/tombol', private: 'mode SELF (owner+VIP)', ban: 'blokir pengguna', unban: 'buka blokir', setlimit: 'atur limit harian', limit: 'sisa jatah hari ini', backup: 'backup login', stop: 'matikan bot', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
 }
@@ -39,6 +42,9 @@ const EMO = {
   infogrup: 'ℹ️', hapus: '🗑️', antilink: '🚫', welcome: '👋', calc: '🧮', tr: '🌍', qr: '🔳', ssweb: '📸', tourl: '☁️', ocr: '📝',
   tomp3: '🎶', tovn: '🎙️', ingatkan: '⏰', cuaca: '🌤️', kurs: '💱', gempa: '🌋', jam: '🕒', wiki: '📚', sholat: '🕌', quran: '📖',
   tebakkata: '🎮', asahotak: '🧠', caklontong: '🤪', susunkata: '🔀', tebakgambar: '🖼️', tebakbendera: '🚩', petik: '🧺', inv: '🎒', jual: '💰', harga: '🏷️', topbuah: '🏅', hint: '💡', nyerah: '🏳️', skor: '🏆',
+  pin: '📌', unpin: '📍', mute: '🔇', unmute: '🔊', bangrup: '⛔', unbangrup: '✅', warn: '⚠️', resetwarn: '♻️', warns: '📋', setrules: '📜', rules: '📜', id: '🆔', userinfo: '👤', broadcast: '📢',
+  buatpack: '📦', pack: '📦', tambahpack: '➕', hapuspack: '➖',
+  daily: '🎁', gacha: '🎰', koleksi: '📚',
   makan: '😋', ringkas: '📝', ban: '🚫', unban: '✅', setlimit: '📊', limit: '📊', backup: '💾', stop: '🛑', owner: '👤', pp: '🧑', status: '📡', menustyle: '📋', private: '🔒', public: '🔓', autoreply: '💬', vip: '⭐'
 }
 const short = c => SHORT[c.name] || (c.desc.length > 34 ? c.desc.slice(0, 33) + '…' : c.desc)
@@ -61,7 +67,7 @@ const title = cat => `*${LABEL[cat] || cat} menu*`
 const compact = (cat, cmds, p) => title(cat) + '\n' + cmds.map(c => item(c, p)).join('\n')
 // menu <kategori>: lengkap dengan cara pakai singkat
 const detail = (cat, cmds, p) => title(cat) + '\n' + cmds.map(c => `${item(c, p)}${c.usage ? ' ' + c.usage : ''} — ${short(c)}`).join('\n')
-const footer = (config, p) => `💡 ketik ${p}menu <kategori> untuk rincian\n© ${config.botName} • ${brand.mark()}`
+const footer = (config, p) => `💡 ketik ${p}menu <kategori> untuk rincian\nchisa-ai By Shipur\npowered by claude\n©${new Date().getFullYear()} • ${brand.mark()}`
 
 // Kartu seperti link: banner di atas, di bawahnya tanggal+jam+cuaca singkat, lalu tagline. Kalau banner gagal -> teks biasa.
 async function sendCard(ctx, text, t) {
@@ -71,6 +77,24 @@ async function sendCard(ctx, text, t) {
   const tagline = config.menu?.tagline || 'Kuchiba Chisa By Shipur'
   const tt = config.owner?.tiktok
   const link = config.menu?.link || (tt ? `https://www.tiktok.com/@${String(tt).replace(/^@/, '')}` : 'https://github.com/purokta/chisaai')
+  // banner bergerak (video pendek seperti GIF) kalau ada assets/banner.mp4; gagal -> kartu thumbnail biasa
+  const bn = config.menu?.banner !== false && assets.banner()
+  if (bn) {
+    try {
+      const bc = require('../lib/bannercache')
+      const head = `${line1}\n${tagline}`
+      const caption = `${head}\n\n${text}`
+      if (caption.length <= 1000) {
+        await bc.send(ctx, bn.file, caption)
+      } else {
+        await bc.send(ctx, bn.file, head)
+        await ctx.reply(text)
+      }
+      return
+    } catch (e) {
+      console.log('[menu] banner video gagal:', e?.message || e)
+    }
+  }
   const th = config.menu?.thumbnail !== false && assets.thumbnail()
   if (th) {
     try {

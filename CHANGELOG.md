@@ -1,3 +1,11 @@
+## 3.2.3 — 27 Okt 2026
+- update.sh dibungkus fungsi: tidak error "syntax error near unexpected token" saat menimpa dirinya sendiri.
+
+## 3.2.2 — 27 Okt 2026
+- Penutup menu: "chisa-ai By Shipur • powered by claude • ©tahun".
+- Update tidak lagi menurunkan versi tanpa sengaja (mis. repo GitHub masih versi lama); paksa dengan `bash update.sh <zip/link> paksa`.
+- Banner GIF di README GitHub.
+
 ## 3.2.1 — 27 Okt 2026
 - Telegram: menu "/" pribadi owner memuat `/push`, `/update`, `/restart`, `/stop`, dll. `#push` (alias `#deploy`) bisa dipakai dari WhatsApp maupun Telegram.
 

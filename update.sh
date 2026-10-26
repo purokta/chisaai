@@ -7,8 +7,12 @@
 #    bash update.sh                      -> pakai zip chisa-ai*.zip TERBARU di folder Download
 #    bash update.sh /path/ke/file.zip    -> pakai zip tertentu
 #    bash update.sh https://link/x.zip   -> unduh zip dari link (mis. repo GitHub kamu)
+#    (tambah kata  paksa  di belakang untuk mengizinkan menurunkan versi)
 # ============================================================
 set -e
+# Seluruh skrip dibungkus fungsi: bash membaca & memeriksa semuanya DULU sebelum menjalankan.
+# Tanpa ini, update.sh yang menimpa dirinya sendiri di tengah proses bisa error ("syntax error near unexpected token").
+main() {
 cd "$(dirname "$0")"
 APP="$(pwd)"
 SRC="$1"
@@ -49,6 +53,15 @@ ver() { grep -m1 '"version"' "$1" 2>/dev/null | sed 's/[^0-9.]//g'; }
 OLDVER="$(ver package.json)"
 NEWVER="$(ver "$NEW/package.json")"
 
+# ---- pengaman: jangan menurunkan versi tanpa sengaja (mis. repo GitHub-mu masih berisi versi lama) ----
+if [ -n "$OLDVER" ] && [ -n "$NEWVER" ] && [ "$2" != "paksa" ] && [ "$OLDVER" != "$NEWVER" ] \
+   && [ "$(printf '%s\n%s\n' "$OLDVER" "$NEWVER" | sort -V | tail -1)" = "$OLDVER" ]; then
+  echo "!! Dibatalkan: versi di zip (v$NEWVER) LEBIH LAMA dari yang terpasang (v$OLDVER)."
+  echo "   Kalau memakai link GitHub: push dulu versi terbarumu (#push / bash deploy.sh)."
+  echo "   Kalau memang ingin menurunkan versi:  bash update.sh \"$SRC\" paksa"
+  exit 1
+fi
+
 # ---- 3. amankan milikmu ----
 # versi lama menyimpan pengaturan di config.js: simpan salinannya sekali supaya bisa dilihat lagi
 if [ -f config.js ] && ! grep -q "defaults" config.js && [ ! -f config.old.js ]; then
@@ -78,3 +91,6 @@ if [ -z "$CHISA_SUPERVISED" ]; then
   echo "   - kalau jalan di tmux: tmux attach -t bot, Ctrl+C, lalu npm start"
   echo "   - atau kirim #restart dari WhatsApp (khusus owner)"
 fi
+}
+main "$@"
+exit $?

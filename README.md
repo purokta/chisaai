@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/banner.gif" alt="CHISA-AI" width="400"></p>
+
 # 🤖 CHISA-AI — Bot WhatsApp untuk Termux
 
 _by @sipurse_ — mohon pertahankan watermark ini.
@@ -139,3 +141,48 @@ Kirim kode bot terbaru dari HP ke repo GitHub-mu langsung dari WhatsApp (khusus 
 3. Kirim `#deploy` atau `#deploy pesan commit`. Kalau bentrok dengan isi GitHub: `#deploy paksa` (menimpa GitHub dengan versi di HP).
 
 Aman: `session/`, `data/`, dan `settings.js` (berisi token) otomatis tidak ikut ter-push (`.gitignore`), dan token tidak disimpan di `.git`.
+
+
+## Bot Telegram (jalan bersamaan dengan WhatsApp)
+Semua perintah yang sama juga jalan di Telegram, dan menunya memakai **tombol** yang bisa dipencet.
+
+1. Di Telegram buka **@BotFather** → `/newbot` → salin **token**.
+2. (Disarankan, supaya bot membaca semua pesan di grup) kirim ke BotFather: `/setprivacy` → pilih botmu → **Disable**.
+3. Di `settings.js` tambahkan: `telegram: { token: '123456:ABC...' },`
+4. `npm start`. Buka botmu di Telegram, tekan **Start**, lalu kirim `/myid`.
+5. Isi ID itu sebagai owner: `telegram: { token: '...', ownerIds: ['123456789'] },` lalu restart. (VIP: `vipIds`.)
+
+Catatan: di Telegram perintah ditulis dengan `/` (atau `.` `!` `?` `#` `$` seperti biasa). Mention/tag semua hanya mencakup admin (batasan Telegram), bot tidak bisa menambah anggota, dan stiker animasi (.tgs) tidak didukung. Mau hanya Telegram? `whatsapp: { enabled: false }`.
+
+### Fitur khusus Telegram (v2.8.1)
+Moderasi grup (bot harus admin): `/pin` `/unpin` (reply pesan), `/mute [10m|2j]` `/unmute`, `/bangrup` `/unbangrup`, `/warn [alasan]` (3x = dikeluarkan, ubah lewat `telegram.warnLimit`) `/resetwarn` `/warns`, `/setrules` `/rules` (aturan tampil juga di sambutan). Info: `/id`, `/userinfo` (reply/tag). Owner: `/broadcast <pesan>` ke semua pengguna yang pernah chat pribadi ke bot. Antilink grup juga memblokir link undangan `t.me/+...`. Perintah ini hanya muncul di menu Telegram.
+
+### v2.9.0: login harian, gacha anime, pack stiker Chisa
+- **`.daily`** (alias `.login`, `.absen`): login harian, hadiah koin + EXP yang naik tiap hari berturut-turut (streak). Tiap 7 hari: bonus 500 koin, 1 tiket gacha, 2 buah. Hanya bisa sekali per hari (WIB).
+- **`.gacha`**: 1x gratis per hari (+ tiket dari streak). Karakter diambil dari daftar karakter anime terpopuler (Jikan/MyAnimeList) dengan rarity N / R / SR / SSR, hadiah koin + EXP lebih besar untuk rarity tinggi, bonus untuk karakter baru, dan pity (SSR dijamin tiap 50 pull, SR+ tiap 10). Pull tambahan: `.gacha beli` (200 koin, maks 5x per hari; atur di `rpg.gacha` di settings.js). **`.koleksi`** melihat karakter yang sudah didapat.
+- Semua data (streak, koleksi, koin, EXP) tersimpan permanen di `data/db.json`, aman dari update/restart, dan ikut `#backup`. `restore.sh` menyimpan salinan database lama sebelum memulihkan.
+- **Telegram:** stiker sekarang memakai format Telegram (WEBP polos / WEBM video, bukan webp WhatsApp) jadi bisa dibuka. Pack stiker Chisa: owner kirim `/buatpack` (8 stiker dari gambar karakter di `assets/thumbnail.jpg` + tulisan), `/tambahpack [emoji]` (reply foto/video/stiker), `/hapuspack` (reply stikernya), semua orang bisa `/pack` untuk linknya. Pemilik pack harus sudah pernah menekan Start di bot.
+
+### v3.0.0 – 3.0.2: fitur gabungan Dionysus, satu bot Chisa AI
+Tidak ada lagi pilihan mode: semua fitur selalu aktif dan menyatu sebagai **Chisa AI**.
+- Menambah ±270 plugin / ±1.800 perintah hasil adaptasi paket DIONYSUS (RPG, praktis, harian & produktif, kreasi, tools, fun & game, grup, unduh, anime & baca, dunia & info, stiker brat, dll) di WhatsApp. Telegram tetap memakai menu Chisa.
+- **Satu menu:** `.menu` menampilkan banner + satu daftar kategori (fitur Chisa dan tambahan digabung), satu baris per kategori dengan emoji. `.menu <kategori>` untuk isinya, `.menu semua` untuk semuanya, `.menu <perintah>` untuk detail, `.fitur <kata>` untuk mencari.
+- **Prefix universal (WhatsApp):** semua tanda baca bisa jadi prefix (`. , ; : ! ? / # $ - + = ~ @ ^ * _ ( ) | •` dst). Kata yang bukan perintah dengan prefix di luar daftar standar dianggap obrolan biasa.
+- Perintah sistem/owner/menu tetap milik Chisa. Kalau nama perintah sama, kategori RPG/fun/ekstra/praktis/dunia memakai versi tambahan; yang lain tetap versi Chisa. Versi lainnya bisa dipanggil lewat `.dio <perintah>` (tambahan) atau `.chisaai <perintah>` (bawaan).
+- Identitas tetap Chisa AI: thumbnail Chisa, watermark `@sipurse`, nama pack stiker, pairing code (nama perangkat harus `Ubuntu` supaya kode diterima WhatsApp), persona AI ramah.
+- API key opsional untuk fitur AI tambahan: `settings.js` → `diony: { apikey: { groq: '...' } }`. Fitur NSFW, panel/jualan server, dan generator dokumen palsu sengaja tidak disertakan.
+- Modul tambahan (axios, chalk, cheerio, dll) terpasang lewat `npm install` / `update.sh`. Fitur gambar/kartu memakai `sharp` (opsional): `pkg install libvips binutils -y && npm i sharp --legacy-peer-deps`.
+- Perbaikan: stiker brat (ffmpeg 7: `-vsync` diganti `-fps_mode`); `.brat <teks>` langsung jadi stiker.
+- Data fitur tambahan tersimpan di `data/diony/` (ikut `#backup`, aman dari update).
+- Stiker brat (`.brat`, `.bratimg`, `.bratgreen`, `.bratwhite`, `.brathd`, `.bratvid`, `.bratwarna`) sekarang jalan **tanpa sharp** (cadangan memakai Jimp, tampilan lebih polos). Kalau sharp terpasang, tampilan penuh (bingkai & font serif) dipakai otomatis. Fitur gambar lain (efek, kartu, `.warna`, dll) tetap butuh sharp.
+- Sharp di Termux (android-arm64): `npm install --cpu=wasm32 sharp` lalu `npm install @img/sharp-wasm32 --legacy-peer-deps`. Kalau build wasm tidak bisa merender teks, brat otomatis memakai Jimp.
+
+### v3.1.0
+- **Banner menu bergerak:** `assets/banner.mp4` (5 detik, ±500 KB, tampil seperti GIF) dikirim bersama menu. Ganti dengan videomu sendiri di `assets/custom/banner.mp4` (singkat & kecil, mis. 480p tanpa suara; aman dari update). Matikan: `menu: { banner: false }` di settings.js (kembali ke kartu thumbnail). Kalau menu terlalu panjang untuk keterangan video, teks dikirim sebagai pesan kedua.
+- **"Waiting for this message" hanya di HP kamu:** biasanya kunci enkripsi ke HP utama rusak. Kirim `#fixsesi` (owner): menghapus kunci lama (login aman) dan bot restart. Setelah itu kirim pesan lagi dari HP.
+- **Video Facebook blur:** Facebook sekarang diunduh lewat yt-dlp lebih dulu (kualitas sampai 720p, suara digabung); hasil dari API yang resolusinya rendah (<480p) dibandingkan dengan sumber lain dan dipilih yang paling tajam. Pastikan yt-dlp & ffmpeg terpasang: `pkg install yt-dlp ffmpeg -y`.
+- v3.1.1: log "Bad MAC / Closing session / Failed to decrypt" (dump panjang dari libsignal) disembunyikan sepenuhnya. Itu bukan error bot; kalau pesan di HP-mu masih "Waiting for this message", kirim `#fixsesi`.
+- v3.1.2: **banner GIF tidak diunggah tiap menu** — pertama kali diunggah, lalu medianya dipakai ulang (cepat, tetap berputar terus). Kalau gagal otomatis diunggah ulang.
+- v3.1.2: **proteksi dua bot sekaligus** (`.chisa.lock`): dua bot dengan login yang sama merusak kunci enkripsi dan memicu "Waiting for this message" di HP. Kalau muncul "Bot sudah berjalan di proses lain", jalankan `bash stop.sh` dulu.
+- v3.1.2: dump "Closing session / Bad MAC" tidak lagi muncul di panel AKTIVITAS dashboard.
+- v3.2.0: nomor versi tampil di Termux & menu WhatsApp; `.changelog` (alias `.versi`) melihat riwayat update (`.changelog semua`, `.changelog 3.1`). Riwayat disimpan di `CHANGELOG.md`.

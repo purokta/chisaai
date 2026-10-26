@@ -26,6 +26,29 @@ module.exports = [
     }
   },
   {
+    name: 'fixsesi',
+    aliases: ['fixsession', 'perbaikisesi'],
+    hidden: true,
+    ownerOnly: true,
+    desc: 'Perbaiki "Waiting for this message" / Bad MAC (hapus kunci enkripsi lama, login aman)',
+    async run(ctx) {
+      const dir = path.join(ROOT, 'session')
+      let n = 0
+      try {
+        for (const f of fs.readdirSync(dir)) {
+          if (/^(session|sender-key|sender-key-memory)-/.test(f)) {
+            fs.rmSync(path.join(dir, f), { force: true })
+            n++
+          }
+        }
+      } catch (e) {
+        return ctx.reply('Folder session tidak terbaca: ' + (e?.message || e))
+      }
+      await ctx.reply(`🔧 ${n} kunci enkripsi lama dihapus (login tetap aman).` + (supervised() ? '\n🔄 Memulai ulang bot...' : '\nMatikan lalu jalankan ulang bot: Ctrl+C, npm start'))
+      if (supervised()) setTimeout(() => process.exit(2), 1500)
+    }
+  },
+  {
     name: 'restart',
     hidden: true,
     ownerOnly: true,

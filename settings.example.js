@@ -26,6 +26,11 @@ module.exports = {
   //   openai: { baseUrl: 'https://api.groq.com/openai/v1', apiKey: 'KEY', model: 'llama-3.1-8b-instant' }
   // },
 
+  // ---- Opsional: bot Telegram (token dari @BotFather; ID kamu: kirim /myid ke bot) ----
+  // telegram: { token: '123456:ABC...', ownerIds: ['123456789'] },
+  // diony: { apikey: { groq: '...', gemini: '...' } }, // opsional untuk fitur AI tambahan
+  // whatsapp: { enabled: true }, // false = hanya Telegram
+
   // ---- Opsional: token GitHub untuk perintah #deploy (buat di github.com/settings/tokens/new, centang "repo") ----
   // github: { token: 'ghp_xxxxxxxx' },
 

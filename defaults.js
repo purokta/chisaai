@@ -40,7 +40,7 @@ module.exports = {
   },
 
   // Thumbnail & musik menu: ganti file di folder assets/ (lihat assets/README.txt)
-  menu: { style: 'teks', tagline: 'Kuchiba Chisa By Shipur', thumbnail: true, music: true, city: 'Jakarta', timezone: 'Asia/Jakarta', tzLabel: 'WIB' },
+  menu: { style: 'teks', tagline: 'Kuchiba Chisa By Shipur', thumbnail: true, banner: true, music: true, city: 'Jakarta', timezone: 'Asia/Jakarta', tzLabel: 'WIB' },
 
   weather: {},
   prayer: { city: 'Jakarta', country: 'Indonesia' },
@@ -49,7 +49,7 @@ module.exports = {
   limit: { daily: 100, cooldownMs: 1200 },
 
   // inventory buah & EXP game
-  rpg: { gameExp: 20, dropChance: 0.6, petikCooldownMin: 30 },
+  rpg: { gameExp: 20, dropChance: 0.6, petikCooldownMin: 30, gacha: { cost: 200, maxPaid: 5, pitySSR: 50, pitySR: 10 } },
 
   // cadangan otomatis folder session (disimpan lokal di Download/chisa-backup)
   backup: { auto: true, everyHours: 24, keep: 5 },
@@ -59,6 +59,14 @@ module.exports = {
 
   // Isi link zip kalau mau #update lewat WhatsApp (mis. link unduh zip repo GitHub kamu)
   update: { url: 'https://github.com/purokta/chisaai/archive/refs/heads/main.zip' }, // repo GitHub bot ini (username purokta, repo chisaai)
+
+  // WhatsApp bisa dimatikan kalau kamu hanya mau Telegram
+  whatsapp: { enabled: true },
+
+  // Bot Telegram (token dari @BotFather). ownerIds/vipIds = ID angka Telegram (kirim /myid ke bot untuk tahu ID-mu)
+  dashboard: true, // tampilan ala server di Termux setelah bot terhubung (false = log biasa)
+  telegram: { token: '', ownerIds: [], vipIds: [], apiBase: 'https://api.telegram.org' },
+  diony: { apikey: {} }, // fitur tambahan: API key opsional (gemini, groq, dll)
 
   // Untuk #deploy (push kode ke GitHub). Isi token di settings.js, JANGAN di sini.
   github: { user: 'purokta', repo: 'chisaai', branch: 'main', token: '' },
