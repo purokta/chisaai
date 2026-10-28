@@ -135,13 +135,17 @@ public class BotService extends Service {
         return n;
     }
 
-    /** log dipangkas tiap 10 menit kalau > 3 MB */
+    /** log dirotasi (disimpan ke bot.log.1) tiap 10 menit kalau > 3 MB */
     private void trimLogLater(File log) {
         Thread t = new Thread(() -> {
             while (true) {
                 try {
                     Thread.sleep(600000);
-                    if (log.length() > 3 * 1024 * 1024) try (RandomAccessFile r = new RandomAccessFile(log, "rw")) { r.setLength(0); }
+                    if (log.length() > 3 * 1024 * 1024) {
+                        File old = new File(log.getPath() + ".1"); old.delete();
+                        try (FileInputStream in = new FileInputStream(log); FileOutputStream o = new FileOutputStream(old)) { byte[] bf = new byte[65536]; int n; while ((n = in.read(bf)) > 0) o.write(bf, 0, n); }
+                        try (RandomAccessFile r = new RandomAccessFile(log, "rw")) { r.setLength(0); }
+                    }
                 } catch (Exception e) { return; }
             }
         });

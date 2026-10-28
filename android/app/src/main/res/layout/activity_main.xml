@@ -29,10 +29,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="KUCHIBA CHISA"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textColor="?attr/colorPrimary"
-            android:textStyle="bold" />
+            android:text="Kuchiba Chisa"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textColor="?attr/colorOnSurface" />
 
         <TextView
             android:id="@+id/subtitle"
@@ -47,7 +46,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="24dp">
+            app:cardCornerRadius="28dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -64,8 +64,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:fontFamily="monospace"
-                    android:textStyle="bold"
-                    android:textSize="34sp"
+                    android:textSize="32sp"
+                    android:letterSpacing="0.08"
                     android:textColor="?attr/colorPrimary"
                     android:visibility="gone" />
                 <TextView
@@ -81,7 +81,9 @@
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
+            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -94,7 +96,9 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
+            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -107,7 +111,9 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
+            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -121,7 +127,9 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Material3.TextInputLayout.FilledBox"
+            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
+            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -136,10 +144,10 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/toggle"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
             android:textSize="16sp"
-            app:cornerRadius="32dp" />
+            app:cornerRadius="30dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/battery"
@@ -147,18 +155,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Izinkan jalan di latar belakang" />
+            android:text="Izinkan jalan di latar belakang"
+            app:cornerRadius="26dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/openLog"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Log lengkap · simpan · bagikan"
+            app:cornerRadius="26dp" />
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.Material3.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="24dp">
+            app:cardCornerRadius="28dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer">
             <ScrollView
                 android:id="@+id/logScroll"
                 android:layout_width="match_parent"
-                android:layout_height="260dp"
+                android:layout_height="220dp"
                 android:padding="14dp">
                 <TextView
                     android:id="@+id/log"

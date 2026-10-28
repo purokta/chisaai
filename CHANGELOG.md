@@ -1,3 +1,10 @@
+## 3.5.3 — 29 Okt 2026
+- APK: halaman Log lengkap (semua sesi tercatat, disimpan ke Download, dibagikan, disalin, dihapus); log dirotasi, tidak lagi dihapus tiap mulai.
+- APK: tampilan lebih lembut (sudut membulat, kolom isian tonal, warna kartu halus).
+
+## 3.5.2 — 29 Okt 2026
+- APK: diagnosis native — jejak pemanggil exit()/crash dicatat ke log aplikasi (Node keluar diam-diam dengan kode 1).
+
 ## 3.5.1 — 29 Okt 2026
 - APK: log tahap demi tahap di aplikasi + alasan proses bot mati (SIGABRT/SIGSEGV dll) supaya penyebab "mulai lalu balik lagi" kelihatan; handler crash Java.
 

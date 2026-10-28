@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.subtitle)).setText("CHISA-AI by shipur • v" + BuildConfig.VERSION_NAME);
 
         toggle.setOnClickListener(v -> toggle());
+        findViewById(R.id.openLog).setOnClickListener(v -> startActivity(new Intent(this, LogActivity.class)));
         findViewById(R.id.battery).setOnClickListener(v -> {
             try {
                 startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName())));
@@ -148,7 +149,9 @@ public class MainActivity extends Activity {
         prefs.edit().putString("botNumber", bn).putString("ownerNumber", on)
                 .putString("tgToken", String.valueOf(tgToken.getText()).trim())
                 .putString("tgOwner", String.valueOf(tgOwner.getText()).replaceAll("\\D", "")).apply();
-        new File(getFilesDir(), "bot.log").delete();
+        try (java.io.FileOutputStream lo = new java.io.FileOutputStream(new File(getFilesDir(), "bot.log"), true)) {
+            lo.write(("\n──── sesi baru " + new java.text.SimpleDateFormat("dd/MM HH:mm:ss", java.util.Locale.US).format(new java.util.Date()) + " ────\n").getBytes());
+        } catch (Exception ignored) { }
         Intent i = new Intent(this, BotService.class);
         if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
     }
@@ -181,6 +184,7 @@ public class MainActivity extends Activity {
         boolean run = running();
         toggle.setText(run ? "■  STOP BOT" : "▶  MULAI BOT");
         String log = tail(new File(getFilesDir(), "bot.log"), 14000);
+        int sx = log.lastIndexOf("sesi baru"); if (sx > 0) log = log.substring(sx);
         if (!run) log = log + lastExit();
         Matcher m = PAIR.matcher(log); String pair = null;
         while (m.find()) pair = m.group(1);
