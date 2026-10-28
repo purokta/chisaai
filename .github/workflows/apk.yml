@@ -23,7 +23,11 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
 
-      - uses: android-actions/setup-android@v3
+      - name: Siapkan Android SDK (sudah terpasang di server GitHub, ini hanya melengkapi)
+        run: |
+          SDKM=$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "ndk;26.1.10909125" || true
 
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.9 }
