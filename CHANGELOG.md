@@ -1,3 +1,6 @@
+## 3.5.4 — 29 Okt 2026
+- APK: android-main.js mencatat error JS langsung ke log (stderr nodejs-mobile tidak tampil) — untuk melacak error saat memuat bot.
+
 ## 3.5.3 — 29 Okt 2026
 - APK: halaman Log lengkap (semua sesi tercatat, disimpan ke Download, dibagikan, disalin, dihapus); log dirotasi, tidak lagi dihapus tiap mulai.
 - APK: tampilan lebih lembut (sudut membulat, kolom isian tonal, warna kartu halus).
