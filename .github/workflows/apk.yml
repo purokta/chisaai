@@ -47,11 +47,20 @@ jobs:
           ls -la android/app/libnode/bin/arm64-v8a
 
       - name: Paketkan bot + modul npm
+        timeout-minutes: 12
+        env:
+          CI: 'true'
+          GIT_TERMINAL_PROMPT: '0'
+          GIT_SSH_COMMAND: 'ssh -o BatchMode=yes -o StrictHostKeyChecking=no'
         run: |
+          # paket yang diambil lewat git/ssh dialihkan ke https supaya tidak menunggu konfirmasi
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://github.com/".insteadOf "git@github.com:"
+          git config --global --add url."https://github.com/".insteadOf "git://github.com/"
           mkdir -p /tmp/stage/bot android/app/src/main/assets
           rsync -a --exclude=android --exclude=.git --exclude=.github --exclude=node_modules --exclude=docs ./ /tmp/stage/bot/
           cd /tmp/stage/bot
-          npm install --omit=dev --legacy-peer-deps
+          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund --loglevel=http
           cd /tmp/stage
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
           ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
