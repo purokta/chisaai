@@ -26,7 +26,6 @@ import java.util.zip.ZipInputStream;
 
 /** Menjalankan bot (Node.js) di proses terpisah ":bot". Stop = matikan proses ini. */
 public class BotService extends Service {
-    static { System.loadLibrary("native-lib"); System.loadLibrary("node"); }
     public static native int startNode(String[] args, String logPath);
 
     static final String[] KEEP = {"settings.js", "session", "data", "assets/custom", "backup"};
@@ -49,7 +48,8 @@ public class BotService extends Service {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "chisa:bot");
             wl.acquire();
-            new Thread(this::runBot, "node").start();
+            // Node butuh tumpukan memori besar (thread biasa hanya 1 MB)
+            new Thread(null, this::runBot, "node", 8L * 1024 * 1024).start();
         }
         return START_STICKY;
     }
@@ -70,6 +70,9 @@ public class BotService extends Service {
         File log = new File(files, "bot.log");
         int code = 1;
         try {
+            try { System.loadLibrary("c++_shared"); } catch (Throwable ignored) { }
+            System.loadLibrary("node");
+            System.loadLibrary("native-lib");
             prepare(bot);
             writeSettings(bot);
             File bin = new File(files, "bin"); bin.mkdirs();
@@ -87,7 +90,7 @@ public class BotService extends Service {
             trimLogLater(log);
             code = startNode(new String[]{"node", new File(bot, "android-main.js").getAbsolutePath()}, log.getAbsolutePath());
         } catch (Throwable t) {
-            try (FileOutputStream o = new FileOutputStream(log, true)) { o.write(("\n[app] error: " + t + "\n").getBytes()); } catch (Exception ignored) { }
+            try (FileOutputStream o = new FileOutputStream(log, true)) { o.write(("\n[app] error: " + android.util.Log.getStackTraceString(t) + "\n").getBytes()); } catch (Exception ignored) { }
         }
         // 0 = dihentikan (#stop); lainnya = #restart / #update / crash -> hidupkan lagi (maks 5x dalam 2 menit)
         SharedPreferences p = getSharedPreferences("cfg", 0);

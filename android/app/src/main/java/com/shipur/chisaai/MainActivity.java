@@ -8,95 +8,71 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.Typeface;
+import android.content.res.AssetFileDescriptor;
+import android.graphics.Matrix;
+import android.graphics.SurfaceTexture;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.PowerManager;
 import android.provider.Settings;
-import android.text.InputType;
-import android.view.Gravity;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.color.DynamicColors;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Layar tunggal: isi nomor, tekan Mulai, salin kode pairing, lihat log. */
+/** Layar utama (Material You): banner bergerak, nomor, tombol Mulai/Stop, kode pairing, log. */
 public class MainActivity extends Activity {
-    private EditText botNum, ownerNum, tgToken, tgOwner;
-    private TextView status, code, logView;
-    private Button toggle;
-    private ScrollView logScroll;
-    private final Handler h = new Handler(Looper.getMainLooper());
-    private SharedPreferences prefs;
+    private static final int[] BANNERS = {R.raw.banner1, R.raw.banner2, R.raw.banner3, R.raw.banner4};
     private static final Pattern PAIR = Pattern.compile("KODE PAIRING:\\s*([A-Z0-9]{4}-[A-Z0-9]{4})");
 
-    private int dp(int v) { return (int) (v * getResources().getDisplayMetrics().density); }
-
-    private EditText field(LinearLayout root, String hint, String pref, boolean number) {
-        EditText e = new EditText(this);
-        e.setHint(hint);
-        e.setText(prefs.getString(pref, ""));
-        e.setSingleLine(true);
-        e.setTextColor(Color.WHITE); e.setHintTextColor(Color.GRAY);
-        if (number) e.setInputType(InputType.TYPE_CLASS_PHONE);
-        root.addView(e);
-        return e;
-    }
+    private TextInputEditText botNum, ownerNum, tgToken, tgOwner;
+    private TextView status, code, codeHint, logView;
+    private MaterialButton toggle;
+    private ScrollView logScroll;
+    private TextureView banner;
+    private MediaPlayer mp;
+    private Surface surface;
+    private int bannerIdx = (int) (System.currentTimeMillis() % BANNERS.length);
+    private final Handler h = new Handler(Looper.getMainLooper());
+    private SharedPreferences prefs;
+    private boolean alive = true;
 
     @Override
     protected void onCreate(Bundle b) {
+        DynamicColors.applyToActivityIfAvailable(this); // warna mengikuti wallpaper (Android 12+)
         super.onCreate(b);
+        setContentView(R.layout.activity_main);
         prefs = getSharedPreferences("cfg", 0);
-        ScrollView sv = new ScrollView(this);
-        sv.setBackgroundColor(Color.rgb(14, 8, 12));
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(28), dp(16), dp(24));
-        sv.addView(root);
 
-        TextView title = new TextView(this);
-        title.setText("KUCHIBA CHISA"); title.setTextSize(26); title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setTextColor(Color.rgb(176, 16, 16));
-        root.addView(title);
-        TextView sub = new TextView(this);
-        sub.setText("CHISA-AI by shipur • v" + BuildConfig.VERSION_NAME); sub.setTextColor(Color.LTGRAY);
-        root.addView(sub);
+        botNum = findViewById(R.id.botNum); ownerNum = findViewById(R.id.ownerNum);
+        tgToken = findViewById(R.id.tgToken); tgOwner = findViewById(R.id.tgOwner);
+        botNum.setText(prefs.getString("botNumber", "")); ownerNum.setText(prefs.getString("ownerNumber", ""));
+        tgToken.setText(prefs.getString("tgToken", "")); tgOwner.setText(prefs.getString("tgOwner", ""));
+        status = findViewById(R.id.status); code = findViewById(R.id.code); codeHint = findViewById(R.id.codeHint);
+        logView = findViewById(R.id.log); logScroll = findViewById(R.id.logScroll);
+        toggle = findViewById(R.id.toggle); banner = findViewById(R.id.banner);
+        ((TextView) findViewById(R.id.subtitle)).setText("CHISA-AI by shipur • v" + BuildConfig.VERSION_NAME);
 
-        botNum = field(root, "Nomor WhatsApp BOT (628xxxxxxxxxx)", "botNumber", true);
-        ownerNum = field(root, "Nomor OWNER (628xxxxxxxxxx)", "ownerNumber", true);
-        tgToken = field(root, "Token Telegram (opsional)", "tgToken", false);
-        tgOwner = field(root, "ID Telegram owner (opsional)", "tgOwner", true);
-
-        toggle = new Button(this);
         toggle.setOnClickListener(v -> toggle());
-        root.addView(toggle);
-
-        Button batt = new Button(this);
-        batt.setText("Izinkan jalan di latar belakang (disarankan)");
-        batt.setOnClickListener(v -> {
+        findViewById(R.id.battery).setOnClickListener(v -> {
             try {
                 startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName())));
             } catch (Exception e) { startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)); }
         });
-        root.addView(batt);
-
-        status = new TextView(this); status.setTextColor(Color.WHITE); status.setPadding(0, dp(12), 0, 0);
-        root.addView(status);
-        code = new TextView(this);
-        code.setTextSize(30); code.setTypeface(Typeface.MONOSPACE, Typeface.BOLD); code.setGravity(Gravity.CENTER);
-        code.setTextColor(Color.rgb(255, 200, 80)); code.setPadding(0, dp(8), 0, dp(8));
         code.setOnClickListener(v -> {
             String t = code.getText().toString();
             if (t.contains("-")) {
@@ -104,17 +80,49 @@ public class MainActivity extends Activity {
                 Toast.makeText(this, "Kode disalin", Toast.LENGTH_SHORT).show();
             }
         });
-        root.addView(code);
 
-        logView = new TextView(this);
-        logView.setTypeface(Typeface.MONOSPACE); logView.setTextSize(11); logView.setTextColor(Color.rgb(170, 220, 170));
-        logScroll = new ScrollView(this);
-        logScroll.addView(logView);
-        root.addView(logScroll, new LinearLayout.LayoutParams(-1, dp(320)));
-        setContentView(sv);
+        banner.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override public void onSurfaceTextureAvailable(SurfaceTexture st, int w, int hh) { surface = new Surface(st); playBanner(); }
+            @Override public void onSurfaceTextureSizeChanged(SurfaceTexture st, int w, int hh) { crop(); }
+            @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture st) { stopBanner(); surface = null; return true; }
+            @Override public void onSurfaceTextureUpdated(SurfaceTexture st) { }
+        });
 
         if (Build.VERSION.SDK_INT >= 33) requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
         tick();
+    }
+
+    // ---- banner bergerak: 4 video bergantian, diputar terus ----
+    private void playBanner() {
+        if (surface == null) return;
+        stopBanner();
+        try {
+            mp = new MediaPlayer();
+            AssetFileDescriptor afd = getResources().openRawResourceFd(BANNERS[bannerIdx % BANNERS.length]);
+            mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+            mp.setSurface(surface);
+            mp.setVolume(0f, 0f);
+            mp.setOnPreparedListener(m -> { crop(); m.start(); });
+            mp.setOnCompletionListener(m -> { bannerIdx++; playBanner(); }); // ganti ke banner berikutnya
+            mp.setOnErrorListener((m, w, e) -> { stopBanner(); return true; });
+            mp.prepareAsync();
+        } catch (Exception e) { stopBanner(); }
+    }
+
+    private void stopBanner() {
+        if (mp != null) { try { mp.release(); } catch (Exception ignored) { } mp = null; }
+    }
+
+    /** isi penuh kartu tanpa gepeng (center crop) */
+    private void crop() {
+        if (mp == null) return;
+        int vw = mp.getVideoWidth(), vh = mp.getVideoHeight(), w = banner.getWidth(), hh = banner.getHeight();
+        if (vw == 0 || vh == 0 || w == 0 || hh == 0) return;
+        float s = Math.max((float) w / vw, (float) hh / vh);
+        Matrix m = new Matrix();
+        m.setScale(s * vw / w, s * vh / hh, w / 2f, hh / 2f);
+        banner.setTransform(m);
     }
 
     private boolean running() {
@@ -126,18 +134,18 @@ public class MainActivity extends Activity {
 
     private void toggle() {
         if (running()) {
-            Intent i = new Intent(this, BotService.class).setAction("STOP");
-            startService(i);
+            startService(new Intent(this, BotService.class).setAction("STOP"));
             code.setText("");
             return;
         }
-        String bn = botNum.getText().toString().replaceAll("\\D", "");
+        String bn = String.valueOf(botNum.getText()).replaceAll("\\D", "");
         if (bn.startsWith("0")) bn = "62" + bn.substring(1);
-        String on = ownerNum.getText().toString().replaceAll("\\D", "");
+        String on = String.valueOf(ownerNum.getText()).replaceAll("\\D", "");
         if (on.isEmpty()) on = bn;
         if (bn.length() < 9) { Toast.makeText(this, "Isi nomor WhatsApp bot dulu", Toast.LENGTH_LONG).show(); return; }
         prefs.edit().putString("botNumber", bn).putString("ownerNumber", on)
-                .putString("tgToken", tgToken.getText().toString().trim()).putString("tgOwner", tgOwner.getText().toString().replaceAll("\\D", "")).apply();
+                .putString("tgToken", String.valueOf(tgToken.getText()).trim())
+                .putString("tgOwner", String.valueOf(tgOwner.getText()).replaceAll("\\D", "")).apply();
         new File(getFilesDir(), "bot.log").delete();
         Intent i = new Intent(this, BotService.class);
         if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
@@ -152,19 +160,25 @@ public class MainActivity extends Activity {
     }
 
     private void tick() {
+        if (!alive) return;
         boolean run = running();
-        toggle.setText(run ? "■ STOP BOT" : "▶ MULAI BOT");
+        toggle.setText(run ? "■  STOP BOT" : "▶  MULAI BOT");
         String log = tail(new File(getFilesDir(), "bot.log"), 14000);
         Matcher m = PAIR.matcher(log); String pair = null;
         while (m.find()) pair = m.group(1);
-        boolean connected = log.contains("Terhubung") || log.contains("terhubung") || log.contains("connection open") || log.contains("WhatsApp siap");
-        status.setText(!run ? "Status: mati" : connected && pair == null ? "Status: berjalan ✔" : pair != null ? "Status: tautkan perangkat — ketuk kode untuk menyalin" : "Status: memulai… (pertama kali butuh ±1 menit)");
-        if (pair != null && run) code.setText(pair); else if (!run) code.setText("");
-        boolean bottom = logScroll.getChildAt(0).getBottom() - (logScroll.getHeight() + logScroll.getScrollY()) < dp(40);
-        logView.setText(log);
-        if (bottom) logScroll.post(() -> logScroll.fullScroll(View.FOCUS_DOWN));
+        boolean connected = log.contains("terhubung");
+        status.setText(!run ? "Bot mati" : pair != null && !connected ? "Tautkan perangkat dengan kode ini" : connected ? "Bot berjalan ✔" : "Memulai… (pertama kali ±1 menit)");
+        boolean showCode = run && pair != null && !connected;
+        code.setVisibility(showCode ? View.VISIBLE : View.GONE);
+        codeHint.setVisibility(showCode ? View.VISIBLE : View.GONE);
+        if (showCode) code.setText(pair);
+        boolean bottom = logScroll.getChildAt(0).getBottom() - (logScroll.getHeight() + logScroll.getScrollY()) < 120;
+        if (!log.contentEquals(logView.getText())) {
+            logView.setText(log);
+            if (bottom) logScroll.post(() -> logScroll.fullScroll(View.FOCUS_DOWN));
+        }
         h.postDelayed(this::tick, 1500);
     }
 
-    @Override protected void onDestroy() { h.removeCallbacksAndMessages(null); super.onDestroy(); }
+    @Override protected void onDestroy() { alive = false; h.removeCallbacksAndMessages(null); stopBanner(); super.onDestroy(); }
 }

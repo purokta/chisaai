@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material You: warna mengikuti wallpaper (Android 12+); di bawahnya memakai merah Chisa -->
+    <style name="Theme.Chisa" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#B3261E</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#FFDAD5</item>
+        <item name="colorOnPrimaryContainer">#410002</item>
+        <item name="colorSecondaryContainer">#F9DCD8</item>
+        <item name="colorOnSecondaryContainer">#2C1512</item>
+    </style>
+</resources>

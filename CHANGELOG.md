@@ -1,3 +1,7 @@
+## 3.5.0 — 29 Okt 2026
+- APK: perbaikan bot langsung berhenti saat MULAI (library c++_shared dimuat eksplisit, thread Node 8 MB, error dicatat ke log aplikasi).
+- APK: ikon baru (Kuchiba Chisa), tampilan Material You (warna dinamis seperti Pixel), banner bergerak 4 video bergantian.
+
 ## 3.4.5 — 29 Okt 2026
 - APK: berisi arm64 + armeabi-v7a (HP 32-bit juga bisa), ffmpeg bundel jadi opsi (mati secara default) karena bisa membuat APK gagal dipasang.
 

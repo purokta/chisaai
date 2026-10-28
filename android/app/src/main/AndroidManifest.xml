@@ -11,6 +11,8 @@
     <application
         android:label="CHISA-AI"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.Chisa"
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
         android:extractNativeLibs="true">
