@@ -1,0 +1,80 @@
+name: Build APK
+# Membuat chisa-ai.apk (bot + Node.js di dalam aplikasi). Jalankan manual: tab Actions > Build APK > Run workflow.
+# Hasil: Releases > "CHISA-AI APK" (link tetap) atau artifact di halaman run.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['package.json', 'android/**', '.github/workflows/apk.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 18 }
+
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: 8.9 }
+
+      - name: Ambil Node.js untuk Android (nodejs-mobile)
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          mkdir -p /tmp/nm
+          gh release download -R nodejs-mobile/nodejs-mobile --pattern '*android*.zip' --dir /tmp/nm
+          unzip -q /tmp/nm/*.zip -d /tmp/nm/x
+          SO=$(find /tmp/nm/x -path '*arm64-v8a/libnode.so' | head -1)
+          [ -n "$SO" ] || { echo "libnode.so arm64 tidak ditemukan"; find /tmp/nm/x | head -50; exit 1; }
+          mkdir -p android/app/libnode/bin/arm64-v8a android/app/libnode/include/node
+          cp "$SO" android/app/libnode/bin/arm64-v8a/libnode.so
+          H=$(find /tmp/nm/x -name node.h | head -1)
+          cp -r "$(dirname "$H")"/. android/app/libnode/include/node/
+          ls -la android/app/libnode/bin/arm64-v8a
+
+      - name: Paketkan bot + modul npm
+        run: |
+          mkdir -p /tmp/stage/bot android/app/src/main/assets
+          rsync -a --exclude=android --exclude=.git --exclude=.github --exclude=node_modules --exclude=docs ./ /tmp/stage/bot/
+          cd /tmp/stage/bot
+          npm install --omit=dev --legacy-peer-deps
+          cd /tmp/stage
+          zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
+          ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
+
+      - name: ffmpeg untuk stiker/video (opsional, kalau gagal fitur stiker video tidak aktif)
+        continue-on-error: true
+        run: |
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+          curl -fsSL -o android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-linux-arm64
+          chmod +x android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
+          file android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so || true
+
+      - name: Build APK
+        env:
+          APK_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          export APK_VERSION_NAME=$(node -p "require('./package.json').version")
+          gradle -p android assembleRelease --no-daemon
+          cp android/app/build/outputs/apk/release/app-release.apk chisa-ai.apk
+          ls -la chisa-ai.apk
+
+      - uses: actions/upload-artifact@v4
+        with: { name: chisa-ai-apk, path: chisa-ai.apk }
+
+      - name: Terbitkan di Releases
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          V=$(node -p "require('./package.json').version")
+          gh release delete apk-latest -y --cleanup-tag || true
+          gh release create apk-latest chisa-ai.apk --title "CHISA-AI APK" --notes "CHISA-AI v$V (APK). Pasang, isi nomor, tekan MULAI BOT. Pasang di atas versi lama untuk memperbarui (login & data tetap)."

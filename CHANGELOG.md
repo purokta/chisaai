@@ -1,3 +1,21 @@
+## 3.4.0 — 28 Okt 2026
+- Aplikasi Android (APK): bot + Node.js di dalam satu aplikasi. Isi nomor, tekan MULAI BOT, salin kode pairing. Dibuat otomatis oleh GitHub Actions (Actions > Build APK), hasilnya di Releases > "CHISA-AI APK". Lihat README bagian "APK".
+- Bot membaca nomor pairing dari aplikasi (`CHISA_PAIR_NUMBER`), tanpa perlu mengetik di terminal.
+
+## 3.3.2 — 28 Okt 2026
+- Telegram: menu terhapus otomatis 5 menit setelah terakhir dipakai. Pesan teks lain (bukan menu, bukan media) yang tombolnya dipencet terhapus setelah diproses (mis. tombol Gacha/Koleksi). Media tidak pernah dihapus otomatis. Atur di `settings.js`: `telegram: { autoDelete: false }` untuk mematikan, `menuDeleteSec: 300` untuk lamanya.
+
+## 3.3.1 — 28 Okt 2026
+- Telegram: menu `/menu` memakai banner GIF (4 banner yang sama dengan WhatsApp) dan berganti setiap menu dibuka; tombol "Menu utama" juga mengganti banner. Banner diunggah sekali lalu dipakai ulang (cepat).
+
+## 3.3.0 — 28 Okt 2026
+- Menu baru **Economy**: `.kurs` (dolar → rupiah, bisa mata uang lain), `.saham` (IHSG, LQ45, indeks dunia, atau harga saham mis. `.saham bbca`), `.beritaekonomi` (berita ekonomi Indonesia yang lagi ramai diberitakan). Ada sumber cadangan kalau satu sumber gagal.
+- Banner menu sekarang 4 video (maks 10 detik, bawaan 8 detik) dan berganti setiap ada yang mengetik menu. Ganti dengan milikmu: `assets/custom/banner1.mp4` … `banner4.mp4`.
+- Menu **Owner** menampilkan semua perintah tersembunyi (update, restart, fixsesi, deploy, ping, myid, dll).
+- Semua nama lama fitur tambahan diganti "chisa" (folder `chisa/`, `lib/chisaplug.js`, `data/chisa`, pengaturan `chisa: { apikey }`). Data lama dipindah otomatis.
+- Dibersihkan: perintah ganda (satu nama = satu perintah) dan ±25 fitur yang tidak berfungsi di Termux (butuh modul sharp / error). Perintah `.dio`, `.chisaai`, dan `.menustyle` dihapus.
+- Perbaikan: `global.owner` sekarang daftar nomor (memperbaiki `.cekinaktif` dan pengecualian owner di anti-spam grup).
+
 ## 3.2.3 — 27 Okt 2026
 - update.sh dibungkus fungsi: tidak error "syntax error near unexpected token" saat menimpa dirinya sendiri.
 
@@ -42,7 +60,7 @@
 - Perbaikan stiker brat (ffmpeg 7) dan `.brat <teks>`.
 
 ## 3.0.0 — 26 Okt 2026
-- Penggabungan fitur paket Dionysus (±270 plugin, ±1.800 perintah): RPG, praktis, kreasi, tools, game, grup, unduh, dll.
+- Penggabungan fitur paket Chisa (±270 plugin, ±1.800 perintah): RPG, praktis, kreasi, tools, game, grup, unduh, dll.
 - Pairing tetap Chisa AI (nama perangkat Ubuntu agar kode diterima).
 
 ## 2.9.0

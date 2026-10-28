@@ -2,14 +2,11 @@ const fs = require('fs')
 const assets = require('../lib/assets')
 const status = require('../lib/status')
 const brand = require('../lib/brand')
-const buttons = require('../lib/buttons')
-const polls = require('../lib/polls')
-const diony = require('../lib/diony')
 
-const ORDER = ['Stiker', 'Downloader', 'Musik', 'Anime', 'AI', 'Grup', 'Alat', 'Info', 'Islami', 'Game', 'Lainnya', 'Owner']
+const ORDER = ['Stiker', 'Downloader', 'Musik', 'Anime', 'AI', 'Grup', 'Alat', 'Info', 'Economy', 'Islami', 'Game', 'Lainnya', 'Owner']
 const ICON = {
   Stiker: '🖼️', Downloader: '📥', Musik: '🎵', Anime: '🌸', AI: '🤖', Grup: '👥', Alat: '🧰',
-  Info: '🌤️', Islami: '🕌', Game: '🎮', Lainnya: '✨', Owner: '👑'
+  Info: '🌤️', Economy: '💹', Islami: '🕌', Game: '🎮', Lainnya: '✨', Owner: '👑'
 }
 // keterangan singkat di menu (yang tidak ada di sini memakai desc perintah, dipotong)
 const SHORT = {
@@ -24,7 +21,7 @@ const SHORT = {
   antilink: 'blokir link grup WA', welcome: 'sambutan anggota baru',
   calc: 'kalkulator', tr: 'terjemah', qr: 'buat kode QR', ssweb: 'screenshot web', tourl: 'media → link', ocr: 'baca teks gambar',
   tomp3: 'video → MP3', tovn: 'audio → voice note', ingatkan: 'pengingat',
-  cuaca: 'cuaca kota', kurs: 'kurs mata uang', gempa: 'gempa terbaru', jam: 'jam kota lain', wiki: 'ringkasan Wikipedia',
+  cuaca: 'cuaca kota', kurs: 'kurs dolar → rupiah', saham: 'indeks saham / harga saham', beritaekonomi: 'berita ekonomi lagi viral', gempa: 'gempa terbaru', jam: 'jam kota lain', wiki: 'ringkasan Wikipedia',
   sholat: 'jadwal sholat', quran: 'ayat Al-Qur\'an',
   tebakkata: 'tebak kata', asahotak: 'asah otak', caklontong: 'tebakan Cak Lontong', susunkata: 'susun kata acak', tebakgambar: 'tebak gambar',
   tebakbendera: 'tebak bendera', petik: 'petik buah', inv: 'inventory buah', jual: 'jual buah', harga: 'harga buah', topbuah: 'peringkat koin', hint: 'petunjuk game', nyerah: 'menyerah', skor: 'papan skor',
@@ -32,7 +29,7 @@ const SHORT = {
   buatpack: 'buat pack stiker Chisa', pack: 'pack stiker Chisa', tambahpack: 'tambah stiker ke pack', hapuspack: 'hapus stiker dari pack',
   daily: 'login harian (koin & EXP)', gacha: 'gacha karakter anime', koleksi: 'koleksi karakter',
   owner: 'profil owner', pp: 'foto profil (reply)', search: 'cari info di internet', status: 'status bot & server',
-  menustyle: 'gaya menu teks/poll/tombol', private: 'mode SELF (owner+VIP)', ban: 'blokir pengguna', unban: 'buka blokir', setlimit: 'atur limit harian', limit: 'sisa jatah hari ini', backup: 'backup login', stop: 'matikan bot', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
+ private: 'mode SELF (owner+VIP)', ban: 'blokir pengguna', unban: 'buka blokir', setlimit: 'atur limit harian', limit: 'sisa jatah hari ini', backup: 'backup login', stop: 'matikan bot', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
 }
 
 const EMO = {
@@ -40,20 +37,22 @@ const EMO = {
   waifu: '🌸', neko: '🐱', megumin: '💥', shinobu: '🦋', animeinfo: '🎌', ai: '🤖', img: '🖌️', hd: '🔍', search: '🌐',
   tagall: '📢', hidetag: '👻', kick: '🚪', promote: '⬆️', demote: '⬇️', linkgrup: '🔗', tutupgrup: '🔒', bukagrup: '🔓', admin: '👑',
   infogrup: 'ℹ️', hapus: '🗑️', antilink: '🚫', welcome: '👋', calc: '🧮', tr: '🌍', qr: '🔳', ssweb: '📸', tourl: '☁️', ocr: '📝',
-  tomp3: '🎶', tovn: '🎙️', ingatkan: '⏰', cuaca: '🌤️', kurs: '💱', gempa: '🌋', jam: '🕒', wiki: '📚', sholat: '🕌', quran: '📖',
+  tomp3: '🎶', tovn: '🎙️', ingatkan: '⏰', cuaca: '🌤️', kurs: '💱', saham: '📈', beritaekonomi: '📰', gempa: '🌋', jam: '🕒', wiki: '📚', sholat: '🕌', quran: '📖',
   tebakkata: '🎮', asahotak: '🧠', caklontong: '🤪', susunkata: '🔀', tebakgambar: '🖼️', tebakbendera: '🚩', petik: '🧺', inv: '🎒', jual: '💰', harga: '🏷️', topbuah: '🏅', hint: '💡', nyerah: '🏳️', skor: '🏆',
   pin: '📌', unpin: '📍', mute: '🔇', unmute: '🔊', bangrup: '⛔', unbangrup: '✅', warn: '⚠️', resetwarn: '♻️', warns: '📋', setrules: '📜', rules: '📜', id: '🆔', userinfo: '👤', broadcast: '📢',
   buatpack: '📦', pack: '📦', tambahpack: '➕', hapuspack: '➖',
   daily: '🎁', gacha: '🎰', koleksi: '📚',
-  makan: '😋', ringkas: '📝', ban: '🚫', unban: '✅', setlimit: '📊', limit: '📊', backup: '💾', stop: '🛑', owner: '👤', pp: '🧑', status: '📡', menustyle: '📋', private: '🔒', public: '🔓', autoreply: '💬', vip: '⭐'
+  makan: '😋', ringkas: '📝', ban: '🚫', unban: '✅', setlimit: '📊', limit: '📊', backup: '💾', stop: '🛑', owner: '👤', pp: '🧑', status: '📡', private: '🔒', public: '🔓', autoreply: '💬', vip: '⭐'
 }
 const short = c => SHORT[c.name] || (c.desc.length > 34 ? c.desc.slice(0, 33) + '…' : c.desc)
 
 function groupCommands(ctx) {
   const groups = {}
   for (const c of ctx.commands) {
-    if (c.hidden || (c.ownerOnly && !ctx.isOwner) || (c.platform && c.platform !== ctx.platform)) continue
-    ;(groups[c.category || 'Lainnya'] ||= []).push(c)
+    if ((c.platform && c.platform !== ctx.platform) || (c.hidden || c.ownerOnly) && !ctx.isOwner) continue
+    if (c.hidden && ['menu', 'help', 'bantuan', 'start'].includes(c.name)) continue
+    // owner: semua perintah tersembunyi / khusus owner dikumpulkan di menu Owner
+    ;(groups[ctx.isOwner && (c.hidden || c.ownerOnly) ? 'Owner' : c.category || 'Lainnya'] ||= []).push(c)
   }
   const cats = [...ORDER.filter(c => groups[c]), ...Object.keys(groups).filter(c => !ORDER.includes(c))]
   return { groups, cats }
@@ -152,11 +151,11 @@ async function runTelegram(ctx, groups, cats, want) {
   // tampilkan di pesan menu yang sama (kalau dari tombol & muat), kalau tidak kirim pesan baru
   const view = (text, buttons) => {
     const cb = ctx.tgCb
-    if (cb && (!cb.photo || text.length <= 1000)) return ctx.send({ text, edit: { id: cb.messageId, photo: cb.photo }, tgButtons: buttons })
-    return ctx.send({ text, tgButtons: buttons })
+    if (cb && (!cb.photo || text.length <= 1000)) return ctx.send({ tgMenu: true, text, edit: { id: cb.messageId, photo: cb.photo }, tgButtons: buttons })
+    return ctx.send({ tgMenu: true, text, tgButtons: buttons })
   }
 
-  if (want === 'semua') return ctx.send({ text: cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), tgButtons: [[{ text: '🏠 Menu utama', data: '#menu' }]] })
+  if (want === 'semua') return ctx.send({ tgMenu: true, text: cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), tgButtons: [[{ text: '🏠 Menu utama', data: '#menu' }]] })
   if (want) {
     const cat = cats.find(c => c.toLowerCase() === want)
     if (!cat) return ctx.reply(`Kategori "${want}" tidak ada.\nPilih: ${cats.map(c => c.toLowerCase()).join(', ')}`)
@@ -169,18 +168,31 @@ async function runTelegram(ctx, groups, cats, want) {
   const line1 = `${t.pendek} • ${t.jam}${cw ? ' • ' + cw : ''}`
   const tagline = config.menu?.tagline || 'Kuchiba Chisa By Shipur'
   const caption = `*🤖 ${config.botName}* • by ${brand.mark()}\nHalo ${ctx.pushName || 'kak'}! 👋\n${line1}\n${tagline}\n\nPilih kategori di tombol bawah 👇`
+  // banner GIF yang berganti tiap menu dibuka (kalau tidak ada / gagal: foto thumbnail)
+  const bn = config.menu?.banner !== false && assets.banner()
+  let sent = false
+  if (bn) {
+    try {
+      const st = fs.statSync(bn.file)
+      const tgBanner = { key: bn.file + st.size + st.mtimeMs, buffer: fs.readFileSync(bn.file), caption }
+      await ctx.send({ text: caption, tgBanner, tgButtons: rows, ...(ctx.tgCb ? { edit: { id: ctx.tgCb.messageId, photo: ctx.tgCb.photo } } : {}) })
+      sent = true
+    } catch (e) {
+      console.log('[menu] banner telegram gagal:', e?.message || e)
+    }
+  }
+  if (sent) { if (!ctx.tgCb) await sendMusic(ctx); return }
   if (ctx.tgCb) return view(caption, rows)
   const th = config.menu?.thumbnail !== false && assets.thumbnail()
-  let sent = false
   if (th) {
     try {
-      await ctx.send({ image: await assets.thumbJpeg(th), caption, tgButtons: rows })
+      await ctx.send({ tgMenu: true, image: await assets.thumbJpeg(th), caption, tgButtons: rows })
       sent = true
     } catch (e) {
       console.log('[menu] foto telegram gagal:', e?.message || e)
     }
   }
-  if (!sent) await ctx.send({ text: caption, tgButtons: rows })
+  if (!sent) await ctx.send({ tgMenu: true, text: caption, tgButtons: rows })
   await sendMusic(ctx)
 }
 
@@ -193,7 +205,7 @@ module.exports = [
     usage: '[kategori]',
     desc: 'Tampilkan menu',
     async run(ctx) {
-      const { config, db } = ctx
+      const { config } = ctx
       const p = config.displayPrefix || ctx.prefix
       const { groups, cats } = groupCommands(ctx)
       let want = (ctx.args[0] || '').toLowerCase()
@@ -201,86 +213,17 @@ module.exports = [
 
       if (ctx.platform === 'telegram') return runTelegram(ctx, groups, cats, want)
       // menu gabungan (Chisa + fitur tambahan)
-      {
-        try { return await require('../lib/dionymenu').run(ctx, sendCard, sendMusic) } catch (e) { console.log('[menu diony]', e?.message || e) }
-      }
+      try { return await require('../lib/chisamenu').run(ctx, sendCard, sendMusic) } catch (e) { console.log('[menu chisa]', e?.message || e) }
 
-      // menu <kategori> / menu semua
+      // cadangan kalau menu gabungan gagal: daftar teks sederhana
       if (want === 'semua') return ctx.reply(cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p))
       if (want) {
         const cat = cats.find(c => c.toLowerCase() === want)
         if (!cat) return ctx.reply(`Kategori "${want}" tidak ada.\nPilih: ${cats.map(c => c.toLowerCase()).join(', ')}`)
         return ctx.reply(detail(cat, groups[cat], p) + '\n\n' + footer(config, p))
       }
-
-      const t = status.now()
-      // cuaca hanya dari cache (disiapkan di belakang layar), menu tidak pernah menunggu internet untuk cuaca
       status.refreshWeather()
-      const head = `*🤖 ${config.botName}* • by ${brand.mark()}\nHalo ${ctx.pushName || 'kak'}! 👋`
-
-      const style = db.get('menuStyle', config.menu?.style || 'teks')
-      let done = false
-
-      // POLLING: banner + polling pilihan kategori (bisa dipencet di semua WhatsApp)
-      if (style === 'poll') {
-        try {
-          const hasMusic = config.menu?.music !== false && assets.music()
-          const maxCats = hasMusic ? 11 : 12
-          const shown = cats.slice(0, maxCats)
-          const options = {}
-          const names = shown.map(c => {
-            const n = `${ICON[c] || '📌'} ${c}`
-            options[n] = `#menu ${c.toLowerCase()}`
-            return n
-          })
-          if (hasMusic) {
-            names.push('🎵 Putar Musik')
-            options['🎵 Putar Musik'] = '#menumusik'
-          }
-          await sendCard(ctx, head + '\n\nPilih kategori di polling bawah 👇\nAtau ketik: menu <kategori>', t)
-          const res = await ctx.sock.sendMessage(ctx.jid, { poll: { name: '📂 Pilih Kategori Menu', values: names, selectableCount: 1 } })
-          if (!res?.key?.id) throw new Error('polling tidak terkirim')
-          polls.register(res.key.id, { chat: ctx.jid, options })
-          done = true
-        } catch (e) {
-          console.log('[menu] polling gagal:', e?.message || e)
-        }
-      }
-
-      // tombol "Pilih kategori" di bawah pesan (native flow, tidak selalu bisa dipencet)
-      if (!done && style === 'tombol') {
-        try {
-          const th = config.menu?.thumbnail !== false && assets.thumbnail()
-          const image = th ? await assets.thumbJpeg(th) : null
-          const rows = cats.map(c => ({
-            header: ICON[c] || '📌',
-            title: c,
-            description: `${groups[c].length} perintah`,
-            id: `#menu ${c.toLowerCase()}`
-          }))
-          rows.push({ header: '📋', title: 'Semua', description: 'Tampilkan semua perintah', id: '#menu semua' })
-          await buttons.sendSelectMenu(
-            ctx.sock,
-            ctx.jid,
-            {
-              image,
-              body: head + '\n\nPilih kategori di tombol bawah 👇',
-              footer: 'Atau ketik: menu <kategori>',
-              buttonTitle: '📂 Pilih Kategori',
-              sectionTitle: 'Menu ' + config.botName,
-              rows
-            },
-            ctx.m
-          )
-          done = true
-        } catch (e) {
-          console.log('[menu] tombol gagal, pakai teks:', e?.message || e)
-        }
-      }
-      if (!done) {
-        await sendCard(ctx, head + '\n\n' + cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), t)
-      }
-      // musik menu (voice note) otomatis menyusul setelah menu
+      await sendCard(ctx, `*🤖 ${config.botName}* • by ${brand.mark()}\nHalo ${ctx.pushName || 'kak'}! 👋\n\n` + cats.map(c => compact(c, groups[c], p)).join('\n\n') + '\n\n' + footer(config, p), status.now())
       await sendMusic(ctx)
     }
   },
@@ -293,19 +236,6 @@ module.exports = [
     async run(ctx) {
       if (!(ctx.config.menu?.music !== false && assets.music())) return ctx.reply('Musik menu tidak aktif / belum ada file musik di folder assets.')
       await sendMusic(ctx)
-    }
-  },
-  {
-    name: 'menustyle',
-    category: 'Owner',
-    ownerOnly: true,
-    usage: 'teks/poll/tombol',
-    desc: 'Gaya menu: teks, poll, atau tombol',
-    async run(ctx) {
-      const a = (ctx.args[0] || '').toLowerCase()
-      if (['poll', 'tombol', 'teks'].includes(a)) ctx.db.set('menuStyle', a)
-      const now = ctx.db.get('menuStyle', ctx.config.menu?.style || 'teks')
-      await ctx.reply(`📋 Gaya menu: *${now}*\nUbah: ${ctx.prefix}menustyle teks / poll / tombol\n• teks = daftar berkelompok (bawaan, paling pasti jalan)\n• poll / tombol = percobaan, sering tidak bisa dipencet di bot`)
     }
   }
 ]

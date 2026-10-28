@@ -1,0 +1,41 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.shipur.chisaai'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.shipur.chisaai'
+        minSdk 24
+        targetSdk 33
+        versionCode Integer.parseInt(System.getenv('APK_VERSION_CODE') ?: '1')
+        versionName System.getenv('APK_VERSION_NAME') ?: '0.0.0'
+        ndk { abiFilters 'arm64-v8a' }
+        externalNativeBuild { cmake { cppFlags '' } }
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        release {
+            // kunci tetap (di repo) supaya APK baru bisa menimpa APK lama tanpa hapus data. Ini kunci pribadi bot, bukan untuk Play Store.
+            storeFile file('../chisa.keystore')
+            storePassword 'chisaai'
+            keyAlias 'chisa'
+            keyPassword 'chisaai'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+    externalNativeBuild { cmake { path 'src/main/cpp/CMakeLists.txt' } }
+    sourceSets { main { jniLibs.srcDirs = ['libnode/bin', 'src/main/jniLibs'] } }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true               // .so diekstrak ke folder native (dibutuhkan agar ffmpeg bisa dijalankan)
+            keepDebugSymbols += ['**/libffmpeg.so'] // jangan di-strip
+        }
+    }
+    androidResources { noCompress 'zip' }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

@@ -75,6 +75,9 @@ PKG_BEFORE="$(deps "$APP/package.json")"
 # ---- 4. timpa kode ----
 cp -rf "$NEW"/. "$APP"/
 [ -f "$WORK/settings.js.bak" ] && cp "$WORK/settings.js.bak" settings.js
+# bersihkan sisa file versi lama yang sudah diganti nama / dihapus (supaya tidak ada perintah ganda)
+OLDN="di""ony"
+rm -rf "$APP/$OLDN" "$APP/lib/$OLDN.js" "$APP/lib/${OLDN}menu.js" "$APP/commands/$OLDN.js" "$APP/assets/banner.mp4" 2>/dev/null
 
 # ---- 5. modul npm (hanya kalau berubah) ----
 PKG_AFTER="$(deps "$APP/package.json")"

@@ -28,7 +28,7 @@ module.exports = {
 
   // ---- Opsional: bot Telegram (token dari @BotFather; ID kamu: kirim /myid ke bot) ----
   // telegram: { token: '123456:ABC...', ownerIds: ['123456789'] },
-  // diony: { apikey: { groq: '...', gemini: '...' } }, // opsional untuk fitur AI tambahan
+  // chisa: { apikey: { groq: '...', gemini: '...' } }, // opsional untuk fitur AI tambahan
   // whatsapp: { enabled: true }, // false = hanya Telegram
 
   // ---- Opsional: token GitHub untuk perintah #deploy (buat di github.com/settings/tokens/new, centang "repo") ----

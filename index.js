@@ -3,7 +3,7 @@ const pino = require('pino')
 const readline = require('readline')
 const config = require('./config')
 const loader = require('./lib/loader')
-const diony = require('./lib/diony')
+const plug = require('./lib/chisaplug')
 const handler = require('./lib/handler')
 const { loadBaileys } = require('./lib/baileys')
 const { cleanTmp } = require('./lib/ffmpeg')
@@ -28,7 +28,7 @@ const ask = q =>
     })
   })
 
-let pairNumber = null
+let pairNumber = process.env.CHISA_PAIR_NUMBER ? require('./config').normalizeNumber(process.env.CHISA_PAIR_NUMBER) : null // versi APK: nomor dari aplikasi
 const sentIds = new Set()
 
 // Simpan pesan terakhir supaya WhatsApp bisa minta kirim ulang (mencegah "Waiting for this message")
@@ -208,7 +208,7 @@ log.info(`${loader.load()} perintah dimuat`)
 {
   setImmediate(() => {
     try {
-      const s = diony.boot()
+      const s = plug.boot()
       log.info(`Fitur tambahan siap: ${s.byName.size} perintah / ${s.plugins.length} plugin${s.failed.length ? ` (${s.failed.length} gagal)` : ''}`)
     } catch (e) { log.err('Fitur tambahan gagal dimuat: ' + (e?.message || e)) }
   })

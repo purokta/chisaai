@@ -10,3 +10,10 @@ config.old.js
 *.log
 *.tar.gz
 .chisa.lock
+android/.gradle/
+android/build/
+android/app/build/
+android/app/libnode/
+android/app/src/main/assets/bot.zip
+android/app/src/main/jniLibs/
+android/local.properties

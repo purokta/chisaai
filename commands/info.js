@@ -41,23 +41,6 @@ module.exports = [
     }
   },
   {
-    name: 'kurs',
-    aliases: ['convert'],
-    category: 'Info',
-    usage: '<jumlah> <dari> <ke>',
-    desc: 'Kurs mata uang (mis. kurs 10 usd idr)',
-    async run(ctx) {
-      const [a, from = 'usd', to = 'idr'] = ctx.args
-      const amount = Number(String(a || '1').replace(',', '.'))
-      if (!amount) return ctx.reply(`Contoh: ${ctx.prefix}kurs 10 usd idr`)
-      const r = await http.getJson('https://open.er-api.com/v6/latest/' + from.toUpperCase())
-      const rate = r.rates?.[to.toUpperCase()]
-      if (!rate) return ctx.reply('Kode mata uang tidak dikenal (contoh: usd, idr, eur, jpy).')
-      const fmt = n => n.toLocaleString('id-ID', { maximumFractionDigits: 2 })
-      await ctx.reply(`💱 ${fmt(amount)} ${from.toUpperCase()} = *${fmt(amount * rate)} ${to.toUpperCase()}*`)
-    }
-  },
-  {
     name: 'gempa',
     category: 'Info',
     desc: 'Gempa terbaru (BMKG)',

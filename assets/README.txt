@@ -2,6 +2,7 @@ FOLDER ASSETS - thumbnail & musik menu, bisa kamu ganti sendiri
 ================================================================
 #menu memakai dua hal:
 
+  banner1-4  = 4 video pendek (mp4, maks 10 detik) di atas menu; berganti tiap ada yang mengetik menu
   thumbnail  = gambar di atas menu   (jpg / png / webp)
   music      = musik menu, dikirim sebagai VOICE NOTE otomatis setelah menu (mp3 / m4a / ogg / opus / wav; otomatis dikonversi, maks 3 menit)
 
@@ -9,6 +10,7 @@ CARA GANTI (paling gampang)
   Taruh filemu di folder  assets/custom/  dengan nama:
       thumbnail.jpg   (atau .png / .webp)
       music.mp3       (atau .m4a / .ogg / .opus / .wav)
+      banner1.mp4 ... banner4.mp4   (video, tanpa suara, maks 10 detik; boleh 1-4 file)
   Folder custom/ TIDAK ditimpa saat update, dan langsung berlaku tanpa restart.
 
   Contoh di Termux:

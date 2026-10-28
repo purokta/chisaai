@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.4.1)
+set(CMAKE_CXX_STANDARD 17)
+add_library(node SHARED IMPORTED)
+set_target_properties(node PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../../../libnode/bin/${ANDROID_ABI}/libnode.so)
+include_directories(${CMAKE_SOURCE_DIR}/../../../libnode/include/node/)
+add_library(native-lib SHARED native-lib.cpp)
+target_link_libraries(native-lib android log node)

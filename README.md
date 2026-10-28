@@ -46,7 +46,7 @@ Semua pengaturanmu ada di **`settings.js`** (dibuat otomatis dari `settings.exam
 
 | Perintah | Fungsi |
 |---|---|
-| `#menu` | Banner + daftar berkelompok + voice note musik. `menu grup` = satu kategori, `menu semua`. Gaya: `#menustyle teks/poll/tombol` |
+| `#menu` | Banner + daftar berkelompok + voice note musik. `menu grup` = satu kategori, `menu semua`. |
 | `#status` | Status bot & server |
 | `#s` | Gambar/video → stiker (kirim dengan caption `#s`, atau reply) |
 | `#toimg` | Stiker → gambar |
@@ -98,7 +98,7 @@ Login GitHub dengan token (`ghp_...`) sebagai password, atau `pkg install gh && 
 
 ## Gaya menu
 
-Bawaan: kartu teks berkelompok (banner + daftar per kategori), lalu voice note musik otomatis. `#menustyle poll` / `tombol` adalah percobaan (sering tidak bisa dipencet di bot WhatsApp biasa); kembali dengan `#menustyle teks`.
+Bawaan: kartu teks berkelompok (banner + daftar per kategori), lalu voice note musik otomatis.
 
 ## Thumbnail & musik (voice note) menu
 
@@ -163,22 +163,22 @@ Moderasi grup (bot harus admin): `/pin` `/unpin` (reply pesan), `/mute [10m|2j]`
 - Semua data (streak, koleksi, koin, EXP) tersimpan permanen di `data/db.json`, aman dari update/restart, dan ikut `#backup`. `restore.sh` menyimpan salinan database lama sebelum memulihkan.
 - **Telegram:** stiker sekarang memakai format Telegram (WEBP polos / WEBM video, bukan webp WhatsApp) jadi bisa dibuka. Pack stiker Chisa: owner kirim `/buatpack` (8 stiker dari gambar karakter di `assets/thumbnail.jpg` + tulisan), `/tambahpack [emoji]` (reply foto/video/stiker), `/hapuspack` (reply stikernya), semua orang bisa `/pack` untuk linknya. Pemilik pack harus sudah pernah menekan Start di bot.
 
-### v3.0.0 – 3.0.2: fitur gabungan Dionysus, satu bot Chisa AI
+### v3.0.0 – 3.0.2: fitur gabungan Chisa, satu bot Chisa AI
 Tidak ada lagi pilihan mode: semua fitur selalu aktif dan menyatu sebagai **Chisa AI**.
-- Menambah ±270 plugin / ±1.800 perintah hasil adaptasi paket DIONYSUS (RPG, praktis, harian & produktif, kreasi, tools, fun & game, grup, unduh, anime & baca, dunia & info, stiker brat, dll) di WhatsApp. Telegram tetap memakai menu Chisa.
+- Menambah ±270 plugin / ±1.800 perintah hasil adaptasi paket CHISA (RPG, praktis, harian & produktif, kreasi, tools, fun & game, grup, unduh, anime & baca, dunia & info, stiker brat, dll) di WhatsApp. Telegram tetap memakai menu Chisa.
 - **Satu menu:** `.menu` menampilkan banner + satu daftar kategori (fitur Chisa dan tambahan digabung), satu baris per kategori dengan emoji. `.menu <kategori>` untuk isinya, `.menu semua` untuk semuanya, `.menu <perintah>` untuk detail, `.fitur <kata>` untuk mencari.
 - **Prefix universal (WhatsApp):** semua tanda baca bisa jadi prefix (`. , ; : ! ? / # $ - + = ~ @ ^ * _ ( ) | •` dst). Kata yang bukan perintah dengan prefix di luar daftar standar dianggap obrolan biasa.
-- Perintah sistem/owner/menu tetap milik Chisa. Kalau nama perintah sama, kategori RPG/fun/ekstra/praktis/dunia memakai versi tambahan; yang lain tetap versi Chisa. Versi lainnya bisa dipanggil lewat `.dio <perintah>` (tambahan) atau `.chisaai <perintah>` (bawaan).
+- Satu nama = satu perintah: kalau ada nama bentrok, perintah inti Chisa yang dipakai.
 - Identitas tetap Chisa AI: thumbnail Chisa, watermark `@sipurse`, nama pack stiker, pairing code (nama perangkat harus `Ubuntu` supaya kode diterima WhatsApp), persona AI ramah.
-- API key opsional untuk fitur AI tambahan: `settings.js` → `diony: { apikey: { groq: '...' } }`. Fitur NSFW, panel/jualan server, dan generator dokumen palsu sengaja tidak disertakan.
+- API key opsional untuk fitur AI tambahan: `settings.js` → `chisa: { apikey: { groq: '...' } }`. Fitur NSFW, panel/jualan server, dan generator dokumen palsu sengaja tidak disertakan.
 - Modul tambahan (axios, chalk, cheerio, dll) terpasang lewat `npm install` / `update.sh`. Fitur gambar/kartu memakai `sharp` (opsional): `pkg install libvips binutils -y && npm i sharp --legacy-peer-deps`.
 - Perbaikan: stiker brat (ffmpeg 7: `-vsync` diganti `-fps_mode`); `.brat <teks>` langsung jadi stiker.
-- Data fitur tambahan tersimpan di `data/diony/` (ikut `#backup`, aman dari update).
+- Data fitur tambahan tersimpan di `data/chisa/` (ikut `#backup`, aman dari update).
 - Stiker brat (`.brat`, `.bratimg`, `.bratgreen`, `.bratwhite`, `.brathd`, `.bratvid`, `.bratwarna`) sekarang jalan **tanpa sharp** (cadangan memakai Jimp, tampilan lebih polos). Kalau sharp terpasang, tampilan penuh (bingkai & font serif) dipakai otomatis. Fitur gambar lain (efek, kartu, `.warna`, dll) tetap butuh sharp.
 - Sharp di Termux (android-arm64): `npm install --cpu=wasm32 sharp` lalu `npm install @img/sharp-wasm32 --legacy-peer-deps`. Kalau build wasm tidak bisa merender teks, brat otomatis memakai Jimp.
 
 ### v3.1.0
-- **Banner menu bergerak:** `assets/banner.mp4` (5 detik, ±500 KB, tampil seperti GIF) dikirim bersama menu. Ganti dengan videomu sendiri di `assets/custom/banner.mp4` (singkat & kecil, mis. 480p tanpa suara; aman dari update). Matikan: `menu: { banner: false }` di settings.js (kembali ke kartu thumbnail). Kalau menu terlalu panjang untuk keterangan video, teks dikirim sebagai pesan kedua.
+- **Banner menu bergerak:** 4 video di `assets/banner1.mp4` … `banner4.mp4` (maks 10 detik, bawaan 8 detik, tampil seperti GIF), berganti setiap ada yang mengetik menu. Ganti dengan videomu di `assets/custom/banner1.mp4` … `banner4.mp4` (boleh 1–4 file, singkat, mis. 480p tanpa suara, maks 10 detik; aman dari update).
 - **"Waiting for this message" hanya di HP kamu:** biasanya kunci enkripsi ke HP utama rusak. Kirim `#fixsesi` (owner): menghapus kunci lama (login aman) dan bot restart. Setelah itu kirim pesan lagi dari HP.
 - **Video Facebook blur:** Facebook sekarang diunduh lewat yt-dlp lebih dulu (kualitas sampai 720p, suara digabung); hasil dari API yang resolusinya rendah (<480p) dibandingkan dengan sumber lain dan dipilih yang paling tajam. Pastikan yt-dlp & ffmpeg terpasang: `pkg install yt-dlp ffmpeg -y`.
 - v3.1.1: log "Bad MAC / Closing session / Failed to decrypt" (dump panjang dari libsignal) disembunyikan sepenuhnya. Itu bukan error bot; kalau pesan di HP-mu masih "Waiting for this message", kirim `#fixsesi`.
@@ -186,3 +186,13 @@ Tidak ada lagi pilihan mode: semua fitur selalu aktif dan menyatu sebagai **Chis
 - v3.1.2: **proteksi dua bot sekaligus** (`.chisa.lock`): dua bot dengan login yang sama merusak kunci enkripsi dan memicu "Waiting for this message" di HP. Kalau muncul "Bot sudah berjalan di proses lain", jalankan `bash stop.sh` dulu.
 - v3.1.2: dump "Closing session / Bad MAC" tidak lagi muncul di panel AKTIVITAS dashboard.
 - v3.2.0: nomor versi tampil di Termux & menu WhatsApp; `.changelog` (alias `.versi`) melihat riwayat update (`.changelog semua`, `.changelog 3.1`). Riwayat disimpan di `CHANGELOG.md`.
+
+### v3.3.0: menu Economy, 4 banner, menu Owner lengkap
+- `.kurs`, `.saham`, `.beritaekonomi` (kategori Economy). Banner berganti tiap menu. Menu Owner memuat semua perintah tersembunyi. Semua nama lama fitur tambahan jadi "chisa"; perintah ganda & fitur yang tidak jalan dibuang. Detail: `.changelog`.
+
+## APK (aplikasi Android, tanpa Termux)
+1. Push repo ini ke GitHub (`#push`). **Token GitHub harus punya izin `workflow`** (centang `repo` dan `workflow` saat membuat token), kalau tidak folder `.github` ditolak.
+2. Di GitHub: tab **Actions → Build APK → Run workflow** (±10–15 menit). Hasilnya: **Releases → "CHISA-AI APK" → chisa-ai.apk**.
+3. Pasang APK (izinkan "install dari sumber tidak dikenal"), buka aplikasi, isi nomor WhatsApp bot, tekan **MULAI BOT**, lalu tautkan lewat kode pairing yang muncul (ketuk untuk menyalin).
+4. Tekan "Izinkan jalan di latar belakang" agar bot tidak dimatikan sistem. Memperbarui: pasang APK baru di atas yang lama (login & data tetap).
+- Bot jalan di Node.js 18 (nodejs-mobile) — fitur yang butuh ffmpeg (stiker video, voice note) bergantung pada ffmpeg yang ikut dibundel dan belum tentu jalan di semua HP.
