@@ -3,6 +3,11 @@ name: Build APK
 # Hasil: Releases > "CHISA-AI APK" (link tetap) atau artifact di halaman run.
 on:
   workflow_dispatch:
+    inputs:
+      ffmpeg:
+        description: 'Sertakan ffmpeg (stiker video/voice note) - eksperimen, bisa membuat APK gagal dipasang'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['package.json', 'android/**', '.github/workflows/apk.yml']
@@ -38,13 +43,16 @@ jobs:
           mkdir -p /tmp/nm
           gh release download -R nodejs-mobile/nodejs-mobile --pattern '*android*.zip' --dir /tmp/nm
           unzip -q /tmp/nm/*.zip -d /tmp/nm/x
-          SO=$(find /tmp/nm/x -path '*arm64-v8a/libnode.so' | head -1)
-          [ -n "$SO" ] || { echo "libnode.so arm64 tidak ditemukan"; find /tmp/nm/x | head -50; exit 1; }
-          mkdir -p android/app/libnode/bin/arm64-v8a android/app/libnode/include/node
-          cp "$SO" android/app/libnode/bin/arm64-v8a/libnode.so
+          for ABI in arm64-v8a armeabi-v7a; do
+            SO=$(find /tmp/nm/x -path "*/$ABI/libnode.so" | head -1)
+            [ -n "$SO" ] || { echo "libnode.so $ABI tidak ditemukan"; find /tmp/nm/x | head -50; exit 1; }
+            mkdir -p android/app/libnode/bin/$ABI
+            cp "$SO" android/app/libnode/bin/$ABI/libnode.so
+          done
+          mkdir -p android/app/libnode/include/node
           H=$(find /tmp/nm/x -name node.h | head -1)
           cp -r "$(dirname "$H")"/. android/app/libnode/include/node/
-          ls -la android/app/libnode/bin/arm64-v8a
+          ls -la android/app/libnode/bin/*
 
       - name: Paketkan bot + modul npm
         timeout-minutes: 12
@@ -65,7 +73,8 @@ jobs:
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
           ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
 
-      - name: ffmpeg untuk stiker/video (opsional, kalau gagal fitur stiker video tidak aktif)
+      - name: ffmpeg untuk stiker/video (hanya kalau dicentang saat Run workflow)
+        if: ${{ inputs.ffmpeg }}
         continue-on-error: true
         run: |
           mkdir -p android/app/src/main/jniLibs/arm64-v8a

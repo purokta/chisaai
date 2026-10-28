@@ -1,3 +1,18 @@
+## 3.4.5 — 29 Okt 2026
+- APK: berisi arm64 + armeabi-v7a (HP 32-bit juga bisa), ffmpeg bundel jadi opsi (mati secara default) karena bisa membuat APK gagal dipasang.
+
+## 3.4.4 — 28 Okt 2026
+- Workflow APK: ffmpeg bundel divalidasi (dibuang jika bukan ARM64), dan ada pengecekan tanda tangan/isi APK di log build.
+
+## 3.4.3 — 28 Okt 2026
+- Workflow APK: npm install memakai --ignore-scripts (skrip cek versi Node milik Baileys menggagalkan build). APK: tambahan crypto global untuk Node 18.
+
+## 3.4.2 — 28 Okt 2026
+- Workflow APK: npm install tidak lagi menggantung (git dialihkan ke https, tanpa pertanyaan interaktif, batas waktu 12 menit).
+
+## 3.4.1 — 28 Okt 2026
+- Workflow APK: memakai Android SDK bawaan server GitHub (langkah setup-android yang gagal dibuang).
+
 ## 3.4.0 — 28 Okt 2026
 - Aplikasi Android (APK): bot + Node.js di dalam satu aplikasi. Isi nomor, tekan MULAI BOT, salin kode pairing. Dibuat otomatis oleh GitHub Actions (Actions > Build APK), hasilnya di Releases > "CHISA-AI APK". Lihat README bagian "APK".
 - Bot membaca nomor pairing dari aplikasi (`CHISA_PAIR_NUMBER`), tanpa perlu mengetik di terminal.
