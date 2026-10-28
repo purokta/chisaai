@@ -71,7 +71,10 @@ jobs:
           mkdir -p android/app/src/main/jniLibs/arm64-v8a
           curl -fsSL -o android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-linux-arm64
           chmod +x android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
-          file android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so || true
+          F=android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
+          file "$F" || true
+          # hanya dipakai kalau benar-benar program ARM64; kalau bukan, dibuang supaya APK tetap bisa dipasang
+          if ! file "$F" | grep -q 'ELF 64-bit.*aarch64'; then echo "ffmpeg tidak valid, dibuang"; rm -f "$F"; fi
 
       - name: Build APK
         env:
@@ -81,6 +84,10 @@ jobs:
           gradle -p android assembleRelease --no-daemon
           cp android/app/build/outputs/apk/release/app-release.apk chisa-ai.apk
           ls -la chisa-ai.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "--- tanda tangan"; "$BT/apksigner" verify --verbose --print-certs chisa-ai.apk | head -12 || true
+          echo "--- info paket"; "$BT/aapt2" dump badging chisa-ai.apk | grep -E "^package|sdkVersion|targetSdk|native-code" || true
+          echo "--- library"; unzip -l chisa-ai.apk | grep -E "\.so|bot.zip" || true
 
       - uses: actions/upload-artifact@v4
         with: { name: chisa-ai-apk, path: chisa-ai.apk }
