@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with: { node-version: 18 }
+        with: { node-version: 20 }
 
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
@@ -60,7 +60,7 @@ jobs:
           mkdir -p /tmp/stage/bot android/app/src/main/assets
           rsync -a --exclude=android --exclude=.git --exclude=.github --exclude=node_modules --exclude=docs ./ /tmp/stage/bot/
           cd /tmp/stage/bot
-          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund --loglevel=http
+          npm install --omit=dev --legacy-peer-deps --ignore-scripts --no-audit --no-fund --loglevel=http
           cd /tmp/stage
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
           ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
