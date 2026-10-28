@@ -1,3 +1,6 @@
+## 3.5.1 — 29 Okt 2026
+- APK: log tahap demi tahap di aplikasi + alasan proses bot mati (SIGABRT/SIGSEGV dll) supaya penyebab "mulai lalu balik lagi" kelihatan; handler crash Java.
+
 ## 3.5.0 — 29 Okt 2026
 - APK: perbaikan bot langsung berhenti saat MULAI (library c++_shared dimuat eksplisit, thread Node 8 MB, error dicatat ke log aplikasi).
 - APK: ikon baru (Kuchiba Chisa), tampilan Material You (warna dinamis seperti Pixel), banner bergerak 4 video bergantian.

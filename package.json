@@ -1,6 +1,6 @@
 {
   "name": "chisa-ai",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "CHISA-AI - bot WhatsApp untuk Termux (login nomor / pairing code, tanpa QR)",
   "main": "index.js",
   "scripts": {

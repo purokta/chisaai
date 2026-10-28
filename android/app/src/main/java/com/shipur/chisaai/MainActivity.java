@@ -3,6 +3,8 @@ package com.shipur.chisaai;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
+import java.util.List;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -159,11 +161,27 @@ public class MainActivity extends Activity {
         } catch (Exception e) { return ""; }
     }
 
+    /** alasan proses bot terakhir mati (Android 11+), mis. SIGABRT / SIGSEGV */
+    private String lastExit() {
+        if (Build.VERSION.SDK_INT < 30) return "";
+        try {
+            List<ApplicationExitInfo> l = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).getHistoricalProcessExitReasons(null, 0, 6);
+            StringBuilder sb = new StringBuilder();
+            for (ApplicationExitInfo e : l) if (e.getProcessName() != null && e.getProcessName().endsWith(":bot")) {
+                sb.append("[sistem] proses bot mati: reason=").append(e.getReason()).append(" status=").append(e.getStatus())
+                  .append(" ").append(e.getDescription()).append("\n");
+                if (sb.length() > 600) break;
+            }
+            return sb.toString();
+        } catch (Throwable t) { return ""; }
+    }
+
     private void tick() {
         if (!alive) return;
         boolean run = running();
         toggle.setText(run ? "■  STOP BOT" : "▶  MULAI BOT");
         String log = tail(new File(getFilesDir(), "bot.log"), 14000);
+        if (!run) log = log + lastExit();
         Matcher m = PAIR.matcher(log); String pair = null;
         while (m.find()) pair = m.group(1);
         boolean connected = log.contains("terhubung");

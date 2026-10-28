@@ -32,6 +32,17 @@ public class BotService extends Service {
     private boolean started = false;
     private PowerManager.WakeLock wl;
 
+    private void logLine(String m) {
+        try (FileOutputStream o = new FileOutputStream(new File(getFilesDir(), "bot.log"), true)) { o.write(("[app] " + m + "\n").getBytes()); } catch (Exception ignored) { }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> { logLine("crash di thread " + t.getName() + ": " + android.util.Log.getStackTraceString(e)); android.os.Process.killProcess(android.os.Process.myPid()); });
+        logLine("layanan dibuat (Android " + Build.VERSION.SDK_INT + ", " + Build.SUPPORTED_ABIS[0] + ")");
+    }
+
     @Override public IBinder onBind(Intent i) { return null; }
 
     @Override
@@ -42,7 +53,7 @@ public class BotService extends Service {
             return START_NOT_STICKY;
         }
         getSharedPreferences("cfg", 0).edit().putBoolean("wantRun", true).apply();
-        foreground();
+        try { foreground(); } catch (Throwable t) { logLine("foreground gagal: " + android.util.Log.getStackTraceString(t)); }
         if (!started) {
             started = true;
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -71,10 +82,13 @@ public class BotService extends Service {
         int code = 1;
         try {
             try { System.loadLibrary("c++_shared"); } catch (Throwable ignored) { }
+            logLine("memuat libnode…");
             System.loadLibrary("node");
             System.loadLibrary("native-lib");
+            logLine("menyiapkan berkas bot (pertama kali ±30 dtk)…");
             prepare(bot);
             writeSettings(bot);
+            logLine("menjalankan Node.js…");
             File bin = new File(files, "bin"); bin.mkdirs();
             File ff = new File(getApplicationInfo().nativeLibraryDir, "libffmpeg.so");
             File link = new File(bin, "ffmpeg");
@@ -92,6 +106,7 @@ public class BotService extends Service {
         } catch (Throwable t) {
             try (FileOutputStream o = new FileOutputStream(log, true)) { o.write(("\n[app] error: " + android.util.Log.getStackTraceString(t) + "\n").getBytes()); } catch (Exception ignored) { }
         }
+        logLine("Node berhenti, kode=" + code);
         // 0 = dihentikan (#stop); lainnya = #restart / #update / crash -> hidupkan lagi (maks 5x dalam 2 menit)
         SharedPreferences p = getSharedPreferences("cfg", 0);
         if (code != 0 && recentRestarts(p) < 5) {
