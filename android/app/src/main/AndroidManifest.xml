@@ -17,12 +17,49 @@
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
         android:extractNativeLibs="true">
-        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize" />
+        <activity-alias android:name=".IconDefault" android:targetActivity=".MainActivity" android:enabled="true" android:exported="true"
+            android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:label="CHISA-AI">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias android:name=".IconSakura" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true"
+            android:icon="@mipmap/ic_launcher_sakura" android:roundIcon="@mipmap/ic_launcher_sakura" android:label="CHISA-AI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".IconMidnight" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true"
+            android:icon="@mipmap/ic_launcher_midnight" android:roundIcon="@mipmap/ic_launcher_midnight" android:label="CHISA-AI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".IconSky" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true"
+            android:icon="@mipmap/ic_launcher_sky" android:roundIcon="@mipmap/ic_launcher_sky" android:label="CHISA-AI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".IconMint" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true"
+            android:icon="@mipmap/ic_launcher_mint" android:roundIcon="@mipmap/ic_launcher_mint" android:label="CHISA-AI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".IconCream" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true"
+            android:icon="@mipmap/ic_launcher_cream" android:roundIcon="@mipmap/ic_launcher_cream" android:label="CHISA-AI">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <activity android:name=".LogActivity" android:exported="false" />
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files"
             android:exported="false" android:grantUriPermissions="true">

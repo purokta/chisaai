@@ -31,7 +31,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /** Log lengkap bot: lihat, salin, simpan ke Download, bagikan, hapus. */
-public class LogActivity extends Activity {
+public class LogActivity extends BaseActivity {
     private static final int SHOW = 250 * 1024; // yang ditampilkan; file yang disimpan/dibagikan tetap lengkap
     private TextView text, info;
     private ScrollView scroll;
@@ -39,7 +39,6 @@ public class LogActivity extends Activity {
     private boolean alive = true;
 
     @Override protected void onCreate(Bundle b) {
-        DynamicColors.applyToActivityIfAvailable(this);
         super.onCreate(b);
         setContentView(R.layout.activity_log);
         text = findViewById(R.id.text); info = findViewById(R.id.info); scroll = findViewById(R.id.scroll);

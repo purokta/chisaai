@@ -36,7 +36,6 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.color.DynamicColors;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -50,7 +49,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Layar utama (Material You): Home, Terminal, Banner, Pengaturan. */
-public class MainActivity extends Activity {
+public class MainActivity extends BaseActivity {
     private static final int[] RAW = {R.raw.banner1, R.raw.banner2, R.raw.banner3, R.raw.banner4};
     private static final Pattern PAIR = Pattern.compile("KODE PAIRING:\\s*([A-Z0-9]{4}-[A-Z0-9]{4})");
     private static final int GREEN = 0xFF7EE787, BLUE = 0xFF79C0FF, AMBER = 0xFFE3B341, RED = 0xFFFF7B72, PURPLE = 0xFFD2A8FF, CYAN = 0xFF56D4DD, GRAY = 0xFFC9D1D9, DIM = 0xFF8B949E;
@@ -79,11 +78,12 @@ public class MainActivity extends Activity {
     private final Runnable nextBanner = this::playBanner;
     private SharedPreferences prefs;
     private boolean alive = true;
+    private android.webkit.WebView ytView;
+    private static final int REQ_ICON = 77;
     private String lastLogShown = "";
 
     @Override
     protected void onCreate(Bundle b) {
-        DynamicColors.applyToActivityIfAvailable(this);
         super.onCreate(b);
         setContentView(R.layout.activity_main);
         prefs = getSharedPreferences("cfg", 0);
@@ -125,6 +125,9 @@ public class MainActivity extends Activity {
         shellBar = findViewById(R.id.shellBar); shellIn = findViewById(R.id.shellIn);
         subtitle.setText("CHISA-AI by shipur • v" + BuildConfig.VERSION_NAME);
 
+        ytView = findViewById(R.id.ytView);
+        setupLook();
+        setupYt();
         toggle.setOnClickListener(v -> toggle());
         findViewById(R.id.power).setOnClickListener(v -> toggle());
         findViewById(R.id.openLog).setOnClickListener(v -> startActivity(new Intent(this, LogActivity.class)));
@@ -325,7 +328,7 @@ public class MainActivity extends Activity {
     private void restartBanner() { h.removeCallbacks(nextBanner); playBanner(); }
 
     private void playBanner() {
-        if (surface == null || !alive) return;
+        if (surface == null || !alive || ytOn()) return;
         stopBanner();
         int slot = bannerIdx % 4 + 1; bannerIdx++;
         File cf = BannerStore.custom(this, slot);
@@ -385,6 +388,10 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Isi nomor WhatsApp bot dulu", Toast.LENGTH_LONG).show();
             nav.setSelectedItemId(R.id.nav_set);
             return;
+        }
+        if (prefs.getBoolean("autoClear", true)) {
+            for (String n : new String[]{"bot.log", "bot.log.1", "bot.log.2", "bot.log.3", "bot.log.4", "bot.log.5"}) new File(getFilesDir(), n).delete();
+            lastLogShown = "";
         }
         try (java.io.FileOutputStream lo = new java.io.FileOutputStream(new File(getFilesDir(), "bot.log"), true)) {
             lo.write(("\n──── sesi baru " + new java.text.SimpleDateFormat("dd/MM HH:mm:ss", java.util.Locale.US).format(new java.util.Date()) + " ────\n").getBytes());
@@ -528,5 +535,169 @@ public class MainActivity extends Activity {
         h.postDelayed(this::tick, 1500);
     }
 
-    @Override protected void onDestroy() { alive = false; h.removeCallbacksAndMessages(null); stopBanner(); super.onDestroy(); }
+    @Override protected void onPause() { super.onPause(); if (ytView != null) ytView.onPause(); }
+    @Override protected void onResume() { super.onResume(); if (ytView != null) ytView.onResume(); }
+    @Override protected void onDestroy() { if (ytView != null) { ytView.stopLoading(); ytView.destroy(); } alive = false; h.removeCallbacksAndMessages(null); stopBanner(); super.onDestroy(); }
+
+    // ---------- tampilan: warna, mode, ikon ----------
+    private static final String[] ICON_KEYS = {"Default", "Sakura", "Midnight", "Sky", "Mint", "Cream"};
+    private static final String[] ICON_NAMES = {"Klasik", "Sakura", "Malam", "Langit", "Mint", "Krem"};
+    private static final int[] ICON_RES = {R.mipmap.ic_launcher, R.mipmap.ic_launcher_sakura, R.mipmap.ic_launcher_midnight, R.mipmap.ic_launcher_sky, R.mipmap.ic_launcher_mint, R.mipmap.ic_launcher_cream};
+
+    private int dp(int v) { return Math.round(v * getResources().getDisplayMetrics().density); }
+
+    private android.view.View chip(String label, int fill, boolean sel, View.OnClickListener l) {
+        android.widget.LinearLayout c = new android.widget.LinearLayout(this);
+        c.setOrientation(android.widget.LinearLayout.VERTICAL); c.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        c.setPadding(dp(6), dp(4), dp(6), dp(4));
+        View dot = new View(this);
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setShape(android.graphics.drawable.GradientDrawable.OVAL); g.setColor(fill);
+        int ring = obtainStyledAttributes(new int[]{com.google.android.material.R.attr.colorPrimary}).getColor(0, 0);
+        if (sel) g.setStroke(dp(3), ring); else g.setStroke(dp(1), 0x33888888);
+        dot.setBackground(g);
+        c.addView(dot, new android.widget.LinearLayout.LayoutParams(dp(46), dp(46)));
+        TextView t = new TextView(this); t.setText(label); t.setTextSize(11); t.setGravity(android.view.Gravity.CENTER);
+        t.setPadding(0, dp(4), 0, 0);
+        c.addView(t);
+        c.setOnClickListener(l);
+        return c;
+    }
+
+    private void setupLook() {
+        android.widget.LinearLayout pr = findViewById(R.id.palRow);
+        String cur = prefs.getString("pal", "sakura");
+        TypedValueHelper tv = new TypedValueHelper();
+        for (int i = 0; i < PAL_KEYS.length; i++) {
+            final String key = PAL_KEYS[i];
+            int col = tv.primaryOf(this, PAL_STYLES[i]);
+            pr.addView(chip(getString(PAL_NAMES[i]), col, key.equals(cur), v -> { prefs.edit().putString("pal", key).apply(); recreate(); }));
+        }
+        if (Build.VERSION.SDK_INT >= 31)
+            pr.addView(chip("Dinamis", 0xFF8E8E93, "dyn".equals(cur), v -> { prefs.edit().putString("pal", "dyn").apply(); recreate(); }));
+        com.google.android.material.button.MaterialButtonToggleGroup mg = findViewById(R.id.modeGroup);
+        int mode = prefs.getInt("uiMode", 0);
+        mg.check(mode == 1 ? R.id.modeLight : mode == 2 ? R.id.modeDark : R.id.modeSys);
+        mg.addOnButtonCheckedListener((g, id, on) -> {
+            if (!on) return;
+            int m = id == R.id.modeLight ? 1 : id == R.id.modeDark ? 2 : 0;
+            if (m == prefs.getInt("uiMode", 0)) return;
+            prefs.edit().putInt("uiMode", m).apply(); recreate();
+        });
+        android.widget.LinearLayout ir = findViewById(R.id.iconRow);
+        String curIcon = prefs.getString("icon", "Default");
+        for (int i = 0; i < ICON_KEYS.length; i++) {
+            final String key = ICON_KEYS[i];
+            android.widget.LinearLayout c = new android.widget.LinearLayout(this);
+            c.setOrientation(android.widget.LinearLayout.VERTICAL); c.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            c.setPadding(dp(6), dp(4), dp(6), dp(4));
+            ImageView iv = new ImageView(this); iv.setImageResource(ICON_RES[i]);
+            c.addView(iv, new android.widget.LinearLayout.LayoutParams(dp(56), dp(56)));
+            TextView t = new TextView(this); t.setText(ICON_NAMES[i]); t.setTextSize(11); t.setGravity(android.view.Gravity.CENTER);
+            t.setPadding(0, dp(4), 0, 0); c.addView(t);
+            if (key.equals(curIcon)) c.setBackgroundResource(R.drawable.bg_circle);
+            c.setOnClickListener(v -> setIcon(key));
+            ir.addView(c);
+        }
+        findViewById(R.id.iconCustom).setOnClickListener(v -> {
+            Intent p = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
+            try { startActivityForResult(Intent.createChooser(p, "Pilih gambar ikon"), REQ_ICON); } catch (Exception e) { Toast.makeText(this, "Tidak ada pemilih gambar", Toast.LENGTH_SHORT).show(); }
+        });
+        com.google.android.material.materialswitch.MaterialSwitch ac = findViewById(R.id.autoClear);
+        ac.setChecked(prefs.getBoolean("autoClear", true));
+        ac.setOnCheckedChangeListener((bv, on) -> prefs.edit().putBoolean("autoClear", on).apply());
+    }
+
+    /** ganti ikon peluncur lewat activity-alias */
+    private void setIcon(String key) {
+        android.content.pm.PackageManager pm = getPackageManager();
+        for (String k : ICON_KEYS) {
+            pm.setComponentEnabledSetting(new android.content.ComponentName(getPackageName(), "com.shipur.chisaai.Icon" + k),
+                    k.equals(key) ? android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED : android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    android.content.pm.PackageManager.DONT_KILL_APP);
+        }
+        prefs.edit().putString("icon", key).apply();
+        Toast.makeText(this, "Ikon diganti. Beberapa peluncur butuh beberapa detik untuk memperbarui.", Toast.LENGTH_LONG).show();
+        recreate();
+    }
+
+    @Override protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req != REQ_ICON || res != RESULT_OK || data == null || data.getData() == null) return;
+        try (java.io.InputStream in = getContentResolver().openInputStream(data.getData())) {
+            Bitmap src = BitmapFactory.decodeStream(in);
+            if (src == null) throw new Exception("gambar tidak terbaca");
+            int s = Math.min(src.getWidth(), src.getHeight());
+            Bitmap sq = Bitmap.createBitmap(src, (src.getWidth() - s) / 2, (src.getHeight() - s) / 2, s, s);
+            sq = Bitmap.createScaledBitmap(sq, 192, 192, true);
+            if (Build.VERSION.SDK_INT >= 26) {
+                android.content.pm.ShortcutManager sm = getSystemService(android.content.pm.ShortcutManager.class);
+                if (!sm.isRequestPinShortcutSupported()) throw new Exception("peluncur tidak mendukung pintasan");
+                android.content.pm.ShortcutInfo si = new android.content.pm.ShortcutInfo.Builder(this, "chisa-custom")
+                        .setShortLabel("CHISA-AI").setIcon(android.graphics.drawable.Icon.createWithBitmap(sq))
+                        .setIntent(new Intent(this, MainActivity.class).setAction(Intent.ACTION_MAIN)).build();
+                sm.requestPinShortcut(si, null);
+            } else throw new Exception("butuh Android 8+");
+        } catch (Throwable t) { Toast.makeText(this, "Gagal: " + t.getMessage(), Toast.LENGTH_LONG).show(); }
+    }
+
+    /** ambil warna primary dari sebuah style palet tanpa menerapkannya */
+    static final class TypedValueHelper {
+        int primaryOf(Context c, int style) {
+            android.content.res.TypedArray a = c.obtainStyledAttributes(style, new int[]{com.google.android.material.R.attr.colorPrimary});
+            int v = a.getColor(0, 0xFF888888); a.recycle(); return v;
+        }
+    }
+
+    // ---------- banner YouTube ----------
+    private boolean ytOn() { return prefs.getBoolean("ytOn", false) && ytId(prefs.getString("ytLink", "")) != null; }
+
+    static String ytId(String url) {
+        if (url == null) return null;
+        Matcher m = Pattern.compile("(?:youtu\\.be/|v=|/embed/|/shorts/|/live/)([A-Za-z0-9_-]{11})").matcher(url.trim());
+        if (m.find()) return m.group(1);
+        return url.trim().matches("[A-Za-z0-9_-]{11}") ? url.trim() : null;
+    }
+
+    private void setupYt() {
+        TextInputEditText link = findViewById(R.id.ytLink), start = findViewById(R.id.ytStart);
+        MaterialSwitch en = findViewById(R.id.ytEnable), snd = findViewById(R.id.ytSound);
+        link.setText(prefs.getString("ytLink", "")); start.setText(String.valueOf(prefs.getInt("ytStart", 0)));
+        en.setChecked(prefs.getBoolean("ytOn", false)); snd.setChecked(prefs.getBoolean("ytSound", false));
+        android.webkit.WebSettings ws = ytView.getSettings();
+        ws.setJavaScriptEnabled(true); ws.setMediaPlaybackRequiresUserGesture(false); ws.setDomStorageEnabled(true);
+        ytView.setBackgroundColor(0xFF000000);
+        ytView.setWebChromeClient(new android.webkit.WebChromeClient());
+        ytView.setWebViewClient(new android.webkit.WebViewClient());
+        snd.setOnCheckedChangeListener((bv, on) -> { prefs.edit().putBoolean("ytSound", on).apply(); applyYt(); });
+        en.setOnCheckedChangeListener((bv, on) -> {
+            if (on && ytId(String.valueOf(link.getText())) == null) { bv.setChecked(false); Toast.makeText(this, "Isi link YouTube yang valid dulu", Toast.LENGTH_SHORT).show(); return; }
+            prefs.edit().putBoolean("ytOn", on).apply(); applyYt();
+        });
+        findViewById(R.id.ytApply).setOnClickListener(v -> {
+            String l = String.valueOf(link.getText()).trim();
+            if (ytId(l) == null) { Toast.makeText(this, "Link YouTube tidak valid", Toast.LENGTH_SHORT).show(); return; }
+            int st = 0; try { st = Integer.parseInt(String.valueOf(start.getText()).trim()); } catch (Exception ignored) { }
+            prefs.edit().putString("ytLink", l).putInt("ytStart", Math.max(0, st)).putBoolean("ytOn", true).apply();
+            en.setChecked(true); applyYt();
+            Toast.makeText(this, "Banner YouTube diterapkan — lihat di Home", Toast.LENGTH_SHORT).show();
+        });
+        applyYt();
+    }
+
+    private void applyYt() {
+        if (!ytOn()) {
+            ytView.loadUrl("about:blank"); ytView.setVisibility(View.GONE); banner.setVisibility(View.VISIBLE);
+            if (surface != null) restartBanner();
+            return;
+        }
+        stopBanner(); h.removeCallbacks(nextBanner);
+        bannerImg.setVisibility(View.GONE); banner.setVisibility(View.GONE); ytView.setVisibility(View.VISIBLE);
+        String id = ytId(prefs.getString("ytLink", "")); boolean sound = prefs.getBoolean("ytSound", false);
+        String html = "<html><body style='margin:0;background:#000'><iframe style='position:absolute;inset:0;width:100%;height:100%;border:0' "
+                + "src='https://www.youtube.com/embed/" + id + "?autoplay=1&mute=" + (sound ? 0 : 1) + "&controls=0&loop=1&playlist=" + id
+                + "&playsinline=1&modestbranding=1&rel=0&start=" + prefs.getInt("ytStart", 0) + "' "
+                + "allow='autoplay; encrypted-media' allowfullscreen></iframe></body></html>";
+        ytView.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null);
+    }
 }

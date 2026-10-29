@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pal_sakura">Sakura</string>
+    <string name="pal_lavender">Lavender</string>
+    <string name="pal_sky">Langit</string>
+    <string name="pal_mint">Mint</string>
+    <string name="pal_peach">Persik</string>
+    <string name="pal_sand">Pasir</string>
+    <string name="pal_teal">Teal</string>
+    <string name="pal_rose">Mawar</string>
+    <string name="pal_mono">Abu-abu</string>
+</resources>

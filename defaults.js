@@ -65,7 +65,7 @@ module.exports = {
 
   // Bot Telegram (token dari @BotFather). ownerIds/vipIds = ID angka Telegram (kirim /myid ke bot untuk tahu ID-mu)
   dashboard: true, // tampilan ala server di Termux setelah bot terhubung (false = log biasa)
-  telegram: { token: '', ownerIds: [], vipIds: [], apiBase: 'https://api.telegram.org', autoDelete: true, menuDeleteSec: 300 },
+  telegram: { token: '', ownerIds: [], vipIds: [], apiBase: 'https://api.telegram.org', autoDelete: true, menuDeleteSec: 3600, pressDeleteSec: 3600 },
   chisa: { apikey: {} }, // fitur tambahan: API key opsional (gemini, groq, dll)
 
   // Untuk #deploy (push kode ke GitHub). Isi token di settings.js, JANGAN di sini.

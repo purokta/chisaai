@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><color name="ic_launcher_background">#5C0A0F</color></resources>
+<resources><color name="ic_launcher_background">#5C0A0F</color>    <color name="ic_bg_sakura">#F4B6C8</color>
+    <color name="ic_bg_midnight">#1B1B2F</color>
+    <color name="ic_bg_sky">#8CC0EA</color>
+    <color name="ic_bg_mint">#9AD8BC</color>
+    <color name="ic_bg_cream">#F6E7D4</color>
+</resources>

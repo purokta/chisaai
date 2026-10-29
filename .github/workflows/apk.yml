@@ -92,14 +92,24 @@ jobs:
           export APK_VERSION_NAME=$(node -p "require('./package.json').version")
           gradle -p android assembleRelease --no-daemon
           cp android/app/build/outputs/apk/release/app-release.apk chisa-ai.apk
-          ls -la chisa-ai.apk
+          cp chisa-ai.apk "chisa-ai-v${APK_VERSION_NAME}.apk"
+          ls -la chisa-ai*.apk
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           echo "--- tanda tangan"; "$BT/apksigner" verify --verbose --print-certs chisa-ai.apk | head -12 || true
           echo "--- info paket"; "$BT/aapt2" dump badging chisa-ai.apk | grep -E "^package|sdkVersion|targetSdk|native-code" || true
           echo "--- library"; unzip -l chisa-ai.apk | grep -E "\.so|bot.zip" || true
 
+      - name: Nama berkas berversi
+        id: ver
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          rm chisa-ai.apk
+
       - uses: actions/upload-artifact@v4
-        with: { name: chisa-ai-apk, path: chisa-ai.apk }
+        with:
+          name: chisa-ai-apk-v${{ steps.ver.outputs.v }}
+          path: chisa-ai-v${{ steps.ver.outputs.v }}.apk
 
       - name: Terbitkan di Releases
         env: { GH_TOKEN: '${{ github.token }}' }
@@ -107,4 +117,4 @@ jobs:
           V=$(node -p "require('./package.json').version")
           gh release delete apk-latest -y --cleanup-tag || true
           NOTES=$(printf 'CHISA-AI v%s (APK). Pasang, isi nomor, tekan MULAI BOT. Pasang di atas versi lama untuk memperbarui (login & data tetap).\n\nversionCode: %s' "$V" "${{ github.run_number }}")
-          gh release create apk-latest chisa-ai.apk --title "CHISA-AI APK" --notes "$NOTES"
+          gh release create apk-latest "chisa-ai-v${V}.apk" --title "CHISA-AI APK v${V}" --notes "$NOTES"
