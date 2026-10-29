@@ -37,6 +37,7 @@ import android.widget.Toast;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.DynamicColors;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.BufferedReader;
@@ -57,7 +58,9 @@ public class MainActivity extends Activity {
     private View[] pages;
     private BottomNavigationView nav;
     private int page = 0;
-    private TextInputEditText botNum, ownerNum, tgToken, tgOwner;
+    private TextInputEditText botNum, ownerNum, tgToken, tgOwner, ghRepo, ghBranch, ghToken;
+    private MaterialSwitch ghAuto;
+    private TextView ghInfo;
     private TextView status, subtitle, code, miniLog, termText, shellText;
     private ImageView statusIcon, bannerImg;
     private MaterialButton toggle;
@@ -96,6 +99,16 @@ public class MainActivity extends Activity {
         tgToken = findViewById(R.id.tgToken); tgOwner = findViewById(R.id.tgOwner);
         botNum.setText(prefs.getString("botNumber", "")); ownerNum.setText(prefs.getString("ownerNumber", ""));
         tgToken.setText(prefs.getString("tgToken", "")); tgOwner.setText(prefs.getString("tgOwner", ""));
+        ghRepo = findViewById(R.id.ghRepo); ghBranch = findViewById(R.id.ghBranch); ghToken = findViewById(R.id.ghToken);
+        ghAuto = findViewById(R.id.ghAuto); ghInfo = findViewById(R.id.ghInfo);
+        ghRepo.setText(prefs.getString("ghRepo", AppUpdater.DEF_REPO)); ghBranch.setText(prefs.getString("ghBranch", AppUpdater.DEF_BRANCH));
+        ghToken.setText(prefs.getString("ghToken", "")); ghAuto.setChecked(prefs.getBoolean("ghAuto", true));
+        refreshGh();
+        findViewById(R.id.ghUpdate).setOnClickListener(v -> manualUpdate());
+        findViewById(R.id.ghRestore).setOnClickListener(v -> {
+            prefs.edit().putBoolean("restoreBundled", true).apply();
+            Toast.makeText(this, "Saat bot dimulai berikutnya, script dikembalikan ke bawaan APK (update otomatis dimatikan).", Toast.LENGTH_LONG).show();
+        });
         status = findViewById(R.id.status); subtitle = findViewById(R.id.subtitle); statusIcon = findViewById(R.id.statusIcon);
         code = findViewById(R.id.code); codeCard = findViewById(R.id.codeCard);
         miniLog = findViewById(R.id.miniLog); toggle = findViewById(R.id.toggle);
@@ -154,10 +167,39 @@ public class MainActivity extends Activity {
         if (bn.startsWith("0")) bn = "62" + bn.substring(1);
         String on = String.valueOf(ownerNum.getText()).replaceAll("\\D", "");
         if (on.isEmpty()) on = bn;
-        prefs.edit().putString("botNumber", bn).putString("ownerNumber", on)
+        SharedPreferences.Editor ed = prefs.edit();
+        ed.putString("botNumber", bn).putString("ownerNumber", on)
                 .putString("tgToken", String.valueOf(tgToken.getText()).trim())
-                .putString("tgOwner", String.valueOf(tgOwner.getText()).replaceAll("\\D", "")).apply();
-        botNum.setText(bn); ownerNum.setText(on);
+                .putString("tgOwner", String.valueOf(tgOwner.getText()).replaceAll("\\D", ""))
+                .putString("ghBranch", String.valueOf(ghBranch.getText()).trim().isEmpty() ? AppUpdater.DEF_BRANCH : String.valueOf(ghBranch.getText()).trim())
+                .putString("ghToken", String.valueOf(ghToken.getText()).trim()).putBoolean("ghAuto", ghAuto.isChecked());
+        String repo = AppUpdater.parseRepo(String.valueOf(ghRepo.getText()));
+        ed.putString("ghRepo", repo == null ? AppUpdater.DEF_REPO : repo);
+        String oldRepo = prefs.getString("ghRepo", AppUpdater.DEF_REPO), oldBr = prefs.getString("ghBranch", AppUpdater.DEF_BRANCH);
+        if (repo != null && (!repo.equals(oldRepo) || !String.valueOf(ghBranch.getText()).trim().equals(oldBr))) ed.remove("ghSha"); // sumber diganti -> pasang ulang
+        ed.apply();
+        botNum.setText(bn); ownerNum.setText(on); if (repo != null) ghRepo.setText(repo);
+        refreshGh();
+    }
+
+    // ---------- update script dari GitHub ----------
+    private void refreshGh() {
+        ghInfo.setText("Sekarang: " + AppUpdater.summary(this) + (prefs.getString("ghSha", "").isEmpty() ? "" : " • v" + prefs.getString("ghVer", "?") + " • " + AppUpdater.when(this)));
+    }
+
+    private void manualUpdate() {
+        savePrefs();
+        if (running()) { Toast.makeText(this, "Hentikan bot dulu, lalu cek update.", Toast.LENGTH_LONG).show(); return; }
+        File bot = new File(getFilesDir(), "bot");
+        if (!new File(bot, "index.js").exists()) { Toast.makeText(this, "Jalankan bot sekali dulu (script bawaan APK diekstrak otomatis), lalu cek update.", Toast.LENGTH_LONG).show(); return; }
+        Toast.makeText(this, "Memeriksa GitHub…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            String msg;
+            try { msg = AppUpdater.run(this, bot, true); } catch (Throwable t) { msg = "Gagal: " + (t.getMessage() == null ? t.toString() : t.getMessage()); }
+            final String r = msg;
+            AppUpdater.log(this, r);
+            runOnUiThread(() -> { if (!alive) return; Toast.makeText(this, r, Toast.LENGTH_LONG).show(); refreshGh(); renderInfo(); });
+        }).start();
     }
 
     // ---------- Home: daftar info ----------
@@ -182,6 +224,7 @@ public class MainActivity extends Activity {
             try { startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName()))); }
             catch (Exception e) { startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)); }
         });
+        row(infoList, R.drawable.ic_log, "Script bot", AppUpdater.summary(this), v -> nav.setSelectedItemId(R.id.nav_set));
         row(infoList, R.drawable.ic_info, "Versi", "v" + BuildConfig.VERSION_NAME + " • " + Build.MODEL + " • Android " + Build.VERSION.RELEASE, null);
     }
 

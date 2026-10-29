@@ -10,8 +10,9 @@ process.on('unhandledRejection', (e) => { w('[js] unhandledRejection: ' + (e && 
 process.on('exit', (c) => w('[js] proses keluar kode=' + c))
 try {
   // Node di Android tanpa ICU penuh: regex \p{...} ditolak -> tulis ulang saat dimuat
+  const intlPatched = require('./lib/intl-compat').install() // Node Android tidak punya Intl sama sekali
   const patched = require('./lib/re-compat').install()
-  w(`[js] icu=${process.versions.icu || 'tidak ada'} intl=${typeof Intl} regex-\\p ${patched ? 'ditambal' : 'didukung'}`)
+  w(`[js] icu=${process.versions.icu || 'tidak ada'} intl=${typeof Intl} regex-\\p ${patched ? 'ditambal' : 'didukung'} Intl ${intlPatched ? 'ditambal' : 'asli'}`)
   try { w('[js] zona waktu: ' + (Intl.DateTimeFormat().resolvedOptions().timeZone || '?') + ' | ' + new Date().toString()) } catch {}
   process.chdir(__dirname)
   // Node 18 belum punya crypto global (dipakai Baileys terbaru)

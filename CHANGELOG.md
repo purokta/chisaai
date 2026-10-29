@@ -1,3 +1,10 @@
+## 3.7.0 — 29 Okt 2026
+- APK: update script bot dari GitHub — repo, branch, dan token (repo privat) bisa diganti di Pengaturan; otomatis saat bot dimulai atau tombol "Cek & pasang update"; tombol kembali ke script bawaan APK. Hanya script yang diganti (dependensi tetap dari APK; login/data/banner aman).
+- APK: `#update` dari WhatsApp/Telegram = restart + tarik versi terbaru dari GitHub.
+
+## 3.6.1 — 29 Okt 2026
+- APK: Node Android tidak punya `Intl` (error "Intl is not defined" di menu/status). Ditambah lib/intl-compat.js: Intl.DateTimeFormat/NumberFormat (id-ID, en-GB, en-CA, en-US, sv-SE, zona waktu umum, Hijriyah) + toLocale*String; dicocokkan dengan Intl asli di 1045 kasus uji.
+
 ## 3.6.0 — 29 Okt 2026
 - APK: tampilan baru bergaya KernelSU/Pixel — navigasi bawah Home · Terminal · Banner · Pengaturan, kartu status, daftar info.
 - APK: Terminal di dalam aplikasi — log bot berwarna (live) + Shell (ls, cat, tail, dll.), tombol Log lengkap/simpan/bagikan.

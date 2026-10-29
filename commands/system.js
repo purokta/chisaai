@@ -70,6 +70,7 @@ module.exports = [
     usage: '[pesan commit] [paksa]',
     desc: 'Push kode bot ke GitHub (repo di settings.js → github)',
     async run(ctx) {
+      if (process.env.CHISA_ANDROID) return ctx.reply('ℹ️ #deploy tidak tersedia di aplikasi Android. Push kode dari Termux/PC; di aplikasi cukup #update untuk menarik versi terbaru dari GitHub.')
       const gh = ctx.config.github || {}
       if (!gh.token && !process.env.GITHUB_TOKEN) {
         return ctx.reply(
@@ -103,6 +104,11 @@ module.exports = [
     ownerOnly: true,
     desc: 'Update bot dari link zip di settings.js (update.url)',
     async run(ctx) {
+      if (process.env.CHISA_ANDROID) { // di APK: update dikerjakan aplikasi (GitHub, sesuai pengaturan) saat bot dimulai
+        await ctx.reply('⬇️ Memeriksa update dari GitHub (sesuai Pengaturan aplikasi)...\n🔄 Bot restart sebentar; kalau ada versi baru langsung terpasang.')
+        setTimeout(() => process.exit(2), 1500)
+        return
+      }
       const url = ctx.config.update?.url
       if (!url) {
         return ctx.reply(

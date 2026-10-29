@@ -86,7 +86,15 @@ public class BotService extends Service {
             System.loadLibrary("node");
             System.loadLibrary("native-lib");
             logLine("menyiapkan berkas bot (pertama kali ±30 dtk)…");
-            prepare(bot);
+            boolean fresh = prepare(bot);
+            SharedPreferences cp = getSharedPreferences("cfg", 0);
+            if (fresh) cp.edit().remove("ghSha").apply(); // script bawaan APK baru dipasang -> status GitHub direset
+            if (cp.getBoolean("restoreBundled", false)) {
+                new File(files, "bot.ver").delete();
+                cp.edit().remove("ghSha").putBoolean("restoreBundled", false).putBoolean("ghAuto", false).apply();
+                prepare(bot);
+                AppUpdater.log(this, "dikembalikan ke script bawaan APK (update otomatis dimatikan)");
+            } else AppUpdater.auto(this, bot);
             writeSettings(bot);
             logLine("menjalankan Node.js…");
             File bin = new File(files, "bin"); bin.mkdirs();
@@ -168,12 +176,12 @@ public class BotService extends Service {
     }
 
     /** Ekstrak bot.zip (dari assets) ke files/bot saat pertama kali / setelah APK diperbarui. Login, data, dan settings tidak dihapus. */
-    private void prepare(File bot) throws Exception {
+    private boolean prepare(File bot) throws Exception {
         String ver = BuildConfig.VERSION_NAME + "#" + BuildConfig.VERSION_CODE;
         File marker = new File(getFilesDir(), "bot.ver");
         String cur = "";
         if (marker.exists()) try (FileInputStream in = new FileInputStream(marker)) { byte[] mb = new byte[256]; int mn = in.read(mb); cur = mn > 0 ? new String(mb, 0, mn) : ""; }
-        if (ver.equals(cur) && new File(bot, "index.js").exists()) return;
+        if (ver.equals(cur) && new File(bot, "index.js").exists()) return false;
         bot.mkdirs();
         wipe(bot, "");
         try (ZipInputStream z = new ZipInputStream(getAssets().open("bot.zip"))) {
@@ -191,6 +199,7 @@ public class BotService extends Service {
             }
         }
         try (FileOutputStream o = new FileOutputStream(marker)) { o.write(ver.getBytes()); }
+        return true;
     }
 
     /** settings.js dibuat dari isian di aplikasi */
