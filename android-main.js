@@ -9,6 +9,10 @@ process.on('uncaughtException', (e) => { w('[js] uncaughtException: ' + (e && e.
 process.on('unhandledRejection', (e) => { w('[js] unhandledRejection: ' + (e && e.stack || e)) })
 process.on('exit', (c) => w('[js] proses keluar kode=' + c))
 try {
+  // Node di Android tanpa ICU penuh: regex \p{...} ditolak -> tulis ulang saat dimuat
+  const patched = require('./lib/re-compat').install()
+  w(`[js] icu=${process.versions.icu || 'tidak ada'} intl=${typeof Intl} regex-\\p ${patched ? 'ditambal' : 'didukung'}`)
+  try { w('[js] zona waktu: ' + (Intl.DateTimeFormat().resolvedOptions().timeZone || '?') + ' | ' + new Date().toString()) } catch {}
   process.chdir(__dirname)
   // Node 18 belum punya crypto global (dipakai Baileys terbaru)
   if (!globalThis.crypto) globalThis.crypto = require('crypto').webcrypto

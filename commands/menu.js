@@ -83,10 +83,12 @@ async function sendCard(ctx, text, t) {
       const bc = require('../lib/bannercache')
       const head = `${line1}\n${tagline}`
       const caption = `${head}\n\n${text}`
+      const isImg = /^image\//.test(bn.mime)
+      const put = (cap) => isImg ? ctx.send({ image: fs.readFileSync(bn.file), mimetype: bn.mime, caption: cap }) : bc.send(ctx, bn.file, cap)
       if (caption.length <= 1000) {
-        await bc.send(ctx, bn.file, caption)
+        await put(caption)
       } else {
-        await bc.send(ctx, bn.file, head)
+        await put(head)
         await ctx.reply(text)
       }
       return
@@ -169,7 +171,9 @@ async function runTelegram(ctx, groups, cats, want) {
   const tagline = config.menu?.tagline || 'Kuchiba Chisa By Shipur'
   const caption = `*🤖 ${config.botName}* • by ${brand.mark()}\nHalo ${ctx.pushName || 'kak'}! 👋\n${line1}\n${tagline}\n\nPilih kategori di tombol bawah 👇`
   // banner GIF yang berganti tiap menu dibuka (kalau tidak ada / gagal: foto thumbnail)
-  const bn = config.menu?.banner !== false && assets.banner()
+  const bn0 = config.menu?.banner !== false && assets.banner()
+  const bnImg = bn0 && /^image\//.test(bn0.mime) ? bn0 : null // banner gambar -> dikirim sebagai foto
+  const bn = bnImg ? null : bn0
   let sent = false
   if (bn) {
     try {
@@ -183,10 +187,10 @@ async function runTelegram(ctx, groups, cats, want) {
   }
   if (sent) { if (!ctx.tgCb) await sendMusic(ctx); return }
   if (ctx.tgCb) return view(caption, rows)
-  const th = config.menu?.thumbnail !== false && assets.thumbnail()
+  const th = bnImg || (config.menu?.thumbnail !== false && assets.thumbnail())
   if (th) {
     try {
-      await ctx.send({ tgMenu: true, image: await assets.thumbJpeg(th), caption, tgButtons: rows })
+      await ctx.send({ tgMenu: true, image: bnImg ? fs.readFileSync(bnImg.file) : await assets.thumbJpeg(th), caption, tgButtons: rows })
       sent = true
     } catch (e) {
       console.log('[menu] foto telegram gagal:', e?.message || e)

@@ -1,3 +1,12 @@
+## 3.6.0 — 29 Okt 2026
+- APK: tampilan baru bergaya KernelSU/Pixel — navigasi bawah Home · Terminal · Banner · Pengaturan, kartu status, daftar info.
+- APK: Terminal di dalam aplikasi — log bot berwarna (live) + Shell (ls, cat, tail, dll.), tombol Log lengkap/simpan/bagikan.
+- APK: banner custom — ganti 4 slot dengan GIF (otomatis jadi MP4), MP4 (maks 10 dtk), atau gambar JPG/PNG/WEBP; dipakai di aplikasi dan menu bot.
+- Bot: banner di assets/custom boleh gambar (jpg/png/webp) selain mp4 (WhatsApp & Telegram).
+
+## 3.5.5 — 29 Okt 2026
+- APK: Node Android tanpa ICU penuh menolak regex \p{...} (penyebab bot gagal start di lib/status.js). Ditambah lib/re-compat.js yang menulis ulang \p{...} jadi rentang karakter saat modul dimuat (termasuk node_modules); log mencatat info ICU/zona waktu.
+
 ## 3.5.4 — 29 Okt 2026
 - APK: android-main.js mencatat error JS langsung ke log (stderr nodejs-mobile tidak tampil) — untuk melacak error saat memuat bot.
 

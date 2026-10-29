@@ -1,192 +1,180 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- ============ HOME ============ -->
+        <ScrollView android:id="@+id/pageHome" android:layout_width="match_parent" android:layout_height="match_parent">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginBottom="16dp">
+                    <TextView
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="Home"
+                        android:textAppearance="?attr/textAppearanceDisplaySmall"
+                        android:textColor="?attr/colorOnSurface" />
+                    <ImageButton
+                        android:id="@+id/power"
+                        android:layout_width="48dp" android:layout_height="48dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Mulai atau hentikan bot"
+                        android:src="@drawable/ic_power"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </RelativeLayout>
+
+                <!-- status -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/statusCard"
+                    style="@style/Widget.Material3.CardView.Filled"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    app:cardCornerRadius="26dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:padding="22dp">
+                        <ImageView android:id="@+id/statusIcon" android:layout_width="34dp" android:layout_height="34dp" android:layout_marginEnd="18dp" android:src="@drawable/ic_off" app:tint="?attr/colorOnPrimaryContainer" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceTitleLarge" android:textColor="?attr/colorOnPrimaryContainer" />
+                            <TextView android:id="@+id/subtitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnPrimaryContainer" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- kode pairing -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/codeCard"
+                    style="@style/Widget.Material3.CardView.Filled"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="?attr/colorTertiaryContainer"
+                    app:cardCornerRadius="26dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+                        <TextView android:id="@+id/code" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:fontFamily="monospace" android:letterSpacing="0.1" android:textSize="34sp" android:textColor="?attr/colorOnTertiaryContainer" />
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:gravity="center" android:text="Ketuk kode untuk menyalin\nWhatsApp › Perangkat tertaut › Tautkan dengan nomor telepon" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnTertiaryContainer" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- banner bergerak -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Material3.CardView.Filled"
+                    android:layout_width="match_parent" android:layout_height="200dp"
+                    android:layout_marginBottom="12dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+                    app:cardCornerRadius="26dp">
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+                        <TextureView android:id="@+id/banner" android:layout_width="match_parent" android:layout_height="match_parent" />
+                        <ImageView android:id="@+id/bannerImg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" />
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/toggle"
+                    android:layout_width="match_parent" android:layout_height="60dp"
+                    android:layout_marginBottom="12dp"
+                    android:textSize="16sp"
+                    app:cornerRadius="30dp" />
+
+                <LinearLayout android:id="@+id/infoList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+
+                <!-- cuplikan log -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/miniLogCard"
+                    style="@style/Widget.Material3.CardView.Filled"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:clickable="true" android:focusable="true"
+                    app:cardBackgroundColor="#0D1117"
+                    app:cardCornerRadius="22dp">
+                    <TextView android:id="@+id/miniLog" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:fontFamily="monospace" android:maxLines="8" android:textSize="11sp" android:textColor="#C9D1D9" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ============ TERMINAL ============ -->
+        <LinearLayout android:id="@+id/pageTerm" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp" android:visibility="gone">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginBottom="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:text="Terminal" android:textAppearance="?attr/textAppearanceDisplaySmall" android:textColor="?attr/colorOnSurface" />
+                <ImageButton android:id="@+id/openLog" android:layout_width="48dp" android:layout_height="48dp" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="Log lengkap, simpan, bagikan" android:src="@drawable/ic_log" app:tint="?attr/colorOnSurfaceVariant" />
+            </RelativeLayout>
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/termMode"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:checkedButton="@+id/modeLog"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+                <com.google.android.material.button.MaterialButton android:id="@+id/modeLog" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Log bot" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/modeShell" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Shell" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Material3.CardView.Filled"
+                android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+                app:cardBackgroundColor="#0D1117"
+                app:cardCornerRadius="22dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+                    <ScrollView android:id="@+id/termScroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:padding="14dp">
+                        <TextView android:id="@+id/termText" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="monospace" android:textIsSelectable="true" android:textSize="11sp" android:textColor="#C9D1D9" />
+                    </ScrollView>
+                    <ScrollView android:id="@+id/shellScroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:padding="14dp" android:visibility="gone">
+                        <TextView android:id="@+id/shellText" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="monospace" android:textIsSelectable="true" android:textSize="11sp" android:textColor="#C9D1D9" />
+                    </ScrollView>
+                    <LinearLayout android:id="@+id/shellBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#161B22" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="14dp" android:paddingEnd="4dp" android:visibility="gone">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="monospace" android:text="$" android:textColor="#7EE787" android:textSize="14sp" />
+                        <EditText android:id="@+id/shellIn" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@null" android:fontFamily="monospace" android:hint="ketik perintah (ls, cat, tail…)" android:imeOptions="actionSend" android:inputType="textNoSuggestions" android:paddingStart="8dp" android:singleLine="true" android:textColor="#C9D1D9" android:textColorHint="#6E7681" android:textSize="13sp" />
+                        <ImageButton android:id="@+id/shellSend" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="Jalankan" android:src="@drawable/ic_send" app:tint="#7EE787" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- ============ BANNER ============ -->
+        <ScrollView android:id="@+id/pageBanner" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginBottom="6dp" android:text="Banner" android:textAppearance="?attr/textAppearanceDisplaySmall" android:textColor="?attr/colorOnSurface" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" android:text="Ganti 4 banner bergerak. Dipakai di aplikasi ini dan di menu bot (WhatsApp &amp; Telegram), berganti tiap menu dibuka. Bisa GIF, MP4 (maks 10 detik), atau gambar (JPG/PNG/WEBP). GIF otomatis diubah jadi video." android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorOnSurfaceVariant" />
+                <LinearLayout android:id="@+id/slotList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ============ PENGATURAN ============ -->
+        <ScrollView android:id="@+id/pageSet" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginBottom="16dp" android:text="Pengaturan" android:textAppearance="?attr/textAppearanceDisplaySmall" android:textColor="?attr/colorOnSurface" />
+
+                <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.FilledBox" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp" app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainer" android:hint="Nomor WhatsApp bot (628…)">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/botNum" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="phone" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.FilledBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp" app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainer" android:hint="Nomor owner (kosong = sama dengan bot)">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/ownerNum" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="phone" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.FilledBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp" app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainer" android:hint="Token Telegram (opsional)">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/tgToken" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" android:singleLine="true" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.FilledBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp" app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainer" android:hint="ID Telegram owner (opsional)">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/tgOwner" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton android:id="@+id/saveSet" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="16dp" android:text="Simpan" app:cornerRadius="28dp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Perubahan nomor/token berlaku saat bot dimulai ulang." android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <!-- banner bergerak (4 banner bergantian) -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="210dp"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
-            <TextureView
-                android:id="@+id/banner"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Kuchiba Chisa"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textColor="?attr/colorOnSurface" />
-
-        <TextView
-            android:id="@+id/subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <!-- status + kode pairing -->
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Material3.CardView.Filled"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="28dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainer">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-                <TextView
-                    android:id="@+id/status"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceTitleMedium" />
-                <TextView
-                    android:id="@+id/code"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:fontFamily="monospace"
-                    android:textSize="32sp"
-                    android:letterSpacing="0.08"
-                    android:textColor="?attr/colorPrimary"
-                    android:visibility="gone" />
-                <TextView
-                    android:id="@+id/codeHint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="Ketuk kode untuk menyalin. WhatsApp › Perangkat tertaut › Tautkan dengan nomor telepon"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:visibility="gone" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.FilledBox"
-            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
-            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="Nomor WhatsApp bot (628…)">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/botNum"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.FilledBox"
-            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
-            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="Nomor owner (kosong = sama dengan bot)">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/ownerNum"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.FilledBox"
-            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
-            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="Token Telegram (opsional)">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/tgToken"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:singleLine="true" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.FilledBox"
-            app:boxCornerRadiusTopStart="20dp" app:boxCornerRadiusTopEnd="20dp" app:boxCornerRadiusBottomStart="20dp" app:boxCornerRadiusBottomEnd="20dp"
-            app:boxStrokeWidth="0dp" app:boxStrokeWidthFocused="0dp" app:boxBackgroundColor="?attr/colorSurfaceContainerHigh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="ID Telegram owner (opsional)">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/tgOwner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/toggle"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="20dp"
-            android:textSize="16sp"
-            app:cornerRadius="30dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/battery"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Izinkan jalan di latar belakang"
-            app:cornerRadius="26dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/openLog"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Log lengkap · simpan · bagikan"
-            app:cornerRadius="26dp" />
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.Material3.CardView.Filled"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="28dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainer">
-            <ScrollView
-                android:id="@+id/logScroll"
-                android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:padding="14dp">
-                <TextView
-                    android:id="@+id/log"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="monospace"
-                    android:textSize="11sp"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-            </ScrollView>
-        </com.google.android.material.card.MaterialCardView>
-    </LinearLayout>
-</ScrollView>
+        app:menu="@menu/nav" />
+</LinearLayout>

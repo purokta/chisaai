@@ -11,6 +11,8 @@ CARA GANTI (paling gampang)
       thumbnail.jpg   (atau .png / .webp)
       music.mp3       (atau .m4a / .ogg / .opus / .wav)
       banner1.mp4 ... banner4.mp4   (video, tanpa suara, maks 10 detik; boleh 1-4 file)
+      banner1.jpg ... banner4.jpg   (gambar, boleh .png/.webp; menggantikan video di slot yang sama)
+  Di aplikasi Android: tab Banner > Ganti (GIF otomatis diubah jadi MP4).
   Folder custom/ TIDAK ditimpa saat update, dan langsung berlaku tanpa restart.
 
   Contoh di Termux:
