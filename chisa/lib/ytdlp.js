@@ -219,7 +219,35 @@ async function autoUpdate() {
  */
 async function fetchMedia(url, { kind = 'video', dir }) {
   await SHIELD.assertSafeUrl(url)   // tolak URL internal / skema aneh sebelum yt-dlp dijalankan
-  const c = cfg(), b = await ready()
+  const c = cfg()
+  let b
+  try { b = await ready() } catch (e) {
+    // yt-dlp tidak ada (mis. di aplikasi Android): pakai library JS (ytdl-core / btch-downloader), lalu API cadangan
+    console.log('[unduh] yt-dlp tidak tersedia, memakai jalur JS...')
+    fs.mkdirSync(dir, { recursive: true })
+    const J = require('../../lib/jsdl'), pf = platformOf(url), errs = []
+    if (pf === 'youtube') {
+      try { const r = await J.youtubeFile(url, kind, dir); return { items: [{ file: r.file, kind: r.kind, info: normalize({ title: r.title, uploader: r.author, duration: r.duration }, url) }] } } catch (e) { errs.push('ytdl-core: ' + e.message) }
+      try { const r = await require('./ytfallback').youtube(url, kind, dir); return { items: [{ file: r.file, kind: kind === 'audio' ? 'audio' : 'video', info: normalize({ title: r.title }, url) }] } } catch (e) { errs.push('api: ' + e.message) }
+    } else {
+      try {
+        const D = require('../../lib/downloader'), http = require('../../lib/http')
+        const raw = await J.btchRaw(pf || '', url)
+        const found = D._extract(raw, kind === 'audio')
+        const items = []
+        for (const [i, it] of found.items.entries()) {
+          const { buffer, mime } = await http.getBuffer(it.url, { maxMB: c.maxMB })
+          if (buffer.length < 1000 || /html|json/.test(mime || '')) continue
+          const ext = /^image\//.test(mime) ? 'jpg' : /^audio\//.test(mime) ? 'mp3' : 'mp4'
+          const f = path.join(dir, `jsdl_${Date.now()}_${i}.${ext}`); fs.writeFileSync(f, buffer)
+          items.push({ file: f, kind: kindOf(f), info: normalize({ title: found.title }, url) })
+        }
+        if (items.length) return { items }
+        errs.push('library tidak mengembalikan media')
+      } catch (e) { errs.push('btch: ' + e.message) }
+    }
+    throw new Error(friendly(errs.join(' | ')) || 'Unduhan gagal: ' + errs.join(' | '))
+  }
   fs.mkdirSync(dir, { recursive: true })
   const H = Math.max(144, Number(c.height) || 720)
   const fmt = `bv*[height<=${H}][vcodec~='^(avc|h264)']+ba[acodec~='^(mp4a|aac)']/b[height<=${H}][ext=mp4]/bv*[height<=${H}]+ba/b[height<=${H}]/b`

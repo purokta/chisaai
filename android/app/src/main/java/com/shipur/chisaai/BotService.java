@@ -40,6 +40,7 @@ public class BotService extends Service {
     public void onCreate() {
         super.onCreate();
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> { logLine("crash di thread " + t.getName() + ": " + android.util.Log.getStackTraceString(e)); android.os.Process.killProcess(android.os.Process.myPid()); });
+        logLine("──── bot dimulai " + new java.text.SimpleDateFormat("dd/MM HH:mm:ss", java.util.Locale.US).format(new java.util.Date()) + " ────");
         logLine("layanan dibuat (Android " + Build.VERSION.SDK_INT + ", " + Build.SUPPORTED_ABIS[0] + ")");
     }
 
@@ -102,9 +103,19 @@ public class BotService extends Service {
             File link = new File(bin, "ffmpeg");
             if (ff.exists()) { link.delete(); try { Os.symlink(ff.getAbsolutePath(), link.getAbsolutePath()); } catch (Exception ignored) { } }
 
+            logLine(ff.exists() ? "ffmpeg ada, menguji…" : "ffmpeg tidak ada di APK ini (stiker/voice note/play audio terbatas)");
+            if (ff.exists()) {
+                try {
+                    Process pr = new ProcessBuilder(link.getAbsolutePath(), "-version").redirectErrorStream(true).start();
+                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(pr.getInputStream()));
+                    String l1 = br.readLine(); pr.waitFor();
+                    logLine("ffmpeg: " + (l1 == null ? "tidak ada keluaran (kode " + pr.exitValue() + ")" : l1));
+                } catch (Throwable t) { logLine("ffmpeg tidak bisa dijalankan: " + t.getMessage()); }
+            }
             SharedPreferences p = getSharedPreferences("cfg", 0);
             Os.setenv("HOME", files.getAbsolutePath(), true);
             Os.setenv("TMPDIR", getCacheDir().getAbsolutePath(), true);
+            Os.setenv("CHISA_TMP", getCacheDir().getAbsolutePath(), true);
             Os.setenv("PATH", bin.getAbsolutePath() + ":" + System.getenv("PATH"), true);
             Os.setenv("CHISA_SUPERVISED", "1", true);
             Os.setenv("CHISA_ANDROID", "1", true);

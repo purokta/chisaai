@@ -1,3 +1,12 @@
+## 3.8.0 — 29 Okt 2026
+- Unduh tanpa yt-dlp (aplikasi Android): lib/jsdl.js — YouTube lewat @distube/ytdl-core (lokal), Instagram/Facebook/X/Threads/Pinterest/dll lewat btch-downloader. Keduanya optionalDependencies; di Termux hanya jadi cadangan terakhir setelah API & yt-dlp.
+
+## 3.7.1 — 29 Okt 2026
+- APK: /tmp tidak bisa ditulis di Android (EACCES) -> unggah banner/audio/gambar gagal. Sekarang folder sementara = cache aplikasi.
+- APK: ffmpeg disertakan secara bawaan di build (stiker, voice note, play audio); log menguji ffmpeg saat start. Matikan lewat Run workflow bila APK gagal dipasang.
+- play/unduh YouTube tanpa yt-dlp langsung memakai jalur cadangan (API/converter); situs lain memberi pesan jelas.
+- Log: penanda "bot dimulai" tiap start/restart, jendela terminal diperlebar (150 KB) supaya riwayat sebelum restart tetap terlihat.
+
 ## 3.7.0 — 29 Okt 2026
 - APK: update script bot dari GitHub — repo, branch, dan token (repo privat) bisa diganti di Pengaturan; otomatis saat bot dimulai atau tombol "Cek & pasang update"; tombol kembali ke script bawaan APK. Hanya script yang diganti (dependensi tetap dari APK; login/data/banner aman).
 - APK: `#update` dari WhatsApp/Telegram = restart + tarik versi terbaru dari GitHub.

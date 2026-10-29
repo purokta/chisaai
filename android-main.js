@@ -9,6 +9,13 @@ process.on('uncaughtException', (e) => { w('[js] uncaughtException: ' + (e && e.
 process.on('unhandledRejection', (e) => { w('[js] unhandledRejection: ' + (e && e.stack || e)) })
 process.on('exit', (c) => w('[js] proses keluar kode=' + c))
 try {
+  // /tmp tidak bisa ditulis di Android (EACCES saat unggah media) -> pakai folder cache aplikasi
+  const os = require('os')
+  const T = process.env.CHISA_TMP || path.join(__dirname, '..', 'cache')
+  fs.mkdirSync(T, { recursive: true })
+  process.env.TMPDIR = process.env.TMP = process.env.TEMP = T
+  os.tmpdir = () => T
+  w(`[js] folder sementara: ${T}`)
   // Node di Android tanpa ICU penuh: regex \p{...} ditolak -> tulis ulang saat dimuat
   const intlPatched = require('./lib/intl-compat').install() // Node Android tidak punya Intl sama sekali
   const patched = require('./lib/re-compat').install()

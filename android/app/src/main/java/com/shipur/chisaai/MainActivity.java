@@ -427,7 +427,7 @@ public class MainActivity extends Activity {
         if (!alive) return;
         boolean run = running();
         toggle.setText(run ? "■  Hentikan bot" : "▶  Mulai bot");
-        String raw = tail(new File(getFilesDir(), "bot.log"), 40000);
+        String raw = tail(new File(getFilesDir(), "bot.log"), 150000);
         if (!run) raw = raw + lastExit();
         String cur = raw;
         int sx = cur.lastIndexOf("sesi baru"); if (sx > 0) cur = cur.substring(sx);
