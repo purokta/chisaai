@@ -73,6 +73,8 @@ public class BotService extends Service {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, "bot") : new Notification.Builder(this);
         b.setContentTitle("CHISA-AI berjalan").setContentText("Bot aktif. Ketuk untuk membuka.")
                 .setSmallIcon(android.R.drawable.stat_notify_sync).setContentIntent(pi).setOngoing(true);
+        PendingIntent stop = PendingIntent.getService(this, 9, new Intent(this, BotService.class).setAction("STOP"), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        b.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Hentikan", stop);
         startForeground(1, b.build());
     }
 
@@ -154,16 +156,19 @@ public class BotService extends Service {
         return n;
     }
 
-    /** log dirotasi (disimpan ke bot.log.1) tiap 10 menit kalau > 3 MB */
+    /** Log tidak pernah dihapus otomatis: kalau > 5 MB, dirotasi ke bot.log.1 … bot.log.5 (yang tertua baru dibuang). */
     private void trimLogLater(File log) {
         Thread t = new Thread(() -> {
             while (true) {
                 try {
-                    Thread.sleep(600000);
-                    if (log.length() > 3 * 1024 * 1024) {
-                        File old = new File(log.getPath() + ".1"); old.delete();
-                        try (FileInputStream in = new FileInputStream(log); FileOutputStream o = new FileOutputStream(old)) { byte[] bf = new byte[65536]; int n; while ((n = in.read(bf)) > 0) o.write(bf, 0, n); }
+                    Thread.sleep(60000);
+                    if (log.length() > 5 * 1024 * 1024) {
+                        new File(log.getPath() + ".5").delete();
+                        for (int i = 4; i >= 1; i--) new File(log.getPath() + "." + i).renameTo(new File(log.getPath() + "." + (i + 1)));
+                        File first = new File(log.getPath() + ".1");
+                        try (FileInputStream in = new FileInputStream(log); FileOutputStream o = new FileOutputStream(first)) { byte[] bf = new byte[65536]; int n; while ((n = in.read(bf)) > 0) o.write(bf, 0, n); }
                         try (RandomAccessFile r = new RandomAccessFile(log, "rw")) { r.setLength(0); }
+                        logLine("──── log dirotasi (arsip: bot.log.1) ────");
                     }
                 } catch (Exception e) { return; }
             }

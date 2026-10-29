@@ -50,6 +50,8 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <LinearLayout android:id="@+id/apkBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+
                 <!-- kode pairing -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/codeCard"
@@ -184,6 +186,11 @@
                 <com.google.android.material.button.MaterialButton android:id="@+id/ghRestore" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kembali ke script bawaan APK" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Hanya script bot yang diperbarui. Dependensi tetap dari APK; kalau repo butuh dependensi baru, build APK baru. Login &amp; data aman." android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" />
 
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:text="Aplikasi" android:textAppearance="?attr/textAppearanceTitleLarge" android:textColor="?attr/colorOnSurface" />
+                <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/autoBoot" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Nyalakan bot otomatis setelah HP restart" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/apkCheck" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="Cek versi APK baru" app:cornerRadius="28dp" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/resetSession" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="Reset sesi WhatsApp (pairing ulang)" app:cornerRadius="28dp" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>

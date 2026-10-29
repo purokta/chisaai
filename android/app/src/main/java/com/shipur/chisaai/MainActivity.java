@@ -59,7 +59,8 @@ public class MainActivity extends Activity {
     private BottomNavigationView nav;
     private int page = 0;
     private TextInputEditText botNum, ownerNum, tgToken, tgOwner, ghRepo, ghBranch, ghToken;
-    private MaterialSwitch ghAuto;
+    private MaterialSwitch ghAuto, autoBoot;
+    private android.widget.LinearLayout apkBox;
     private TextView ghInfo;
     private TextView status, subtitle, code, miniLog, termText, shellText;
     private ImageView statusIcon, bannerImg;
@@ -103,6 +104,11 @@ public class MainActivity extends Activity {
         ghAuto = findViewById(R.id.ghAuto); ghInfo = findViewById(R.id.ghInfo);
         ghRepo.setText(prefs.getString("ghRepo", AppUpdater.DEF_REPO)); ghBranch.setText(prefs.getString("ghBranch", AppUpdater.DEF_BRANCH));
         ghToken.setText(prefs.getString("ghToken", "")); ghAuto.setChecked(prefs.getBoolean("ghAuto", true));
+        autoBoot = findViewById(R.id.autoBoot); autoBoot.setChecked(prefs.getBoolean("autoBoot", true));
+        autoBoot.setOnCheckedChangeListener((bv, on) -> prefs.edit().putBoolean("autoBoot", on).apply());
+        apkBox = findViewById(R.id.apkBox);
+        findViewById(R.id.apkCheck).setOnClickListener(v -> checkApk(true));
+        findViewById(R.id.resetSession).setOnClickListener(v -> resetSession());
         refreshGh();
         findViewById(R.id.ghUpdate).setOnClickListener(v -> manualUpdate());
         findViewById(R.id.ghRestore).setOnClickListener(v -> {
@@ -152,6 +158,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33) requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
         renderInfo();
         renderSlots();
+        if (System.currentTimeMillis() - prefs.getLong("apkChecked", 0) > 6L * 3600 * 1000) checkApk(false);
         tick();
     }
 
@@ -180,6 +187,56 @@ public class MainActivity extends Activity {
         ed.apply();
         botNum.setText(bn); ownerNum.setText(on); if (repo != null) ghRepo.setText(repo);
         refreshGh();
+    }
+
+    // ---------- APK baru dari Releases ----------
+    private ApkUpdater.Info apkInfo;
+
+    private void checkApk(boolean manual) {
+        if (manual) Toast.makeText(this, "Memeriksa versi APK…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            String err = null; ApkUpdater.Info i = null;
+            try { i = ApkUpdater.latest(this); prefs.edit().putLong("apkChecked", System.currentTimeMillis()).apply(); } catch (Throwable t) { err = t.getMessage() == null ? t.toString() : t.getMessage(); }
+            final ApkUpdater.Info info = i; final String e = err;
+            runOnUiThread(() -> {
+                if (!alive) return;
+                apkInfo = info; renderApkCard();
+                if (manual) Toast.makeText(this, e != null ? "Gagal: " + e : info == null ? "Belum ada rilis APK di repo." : ApkUpdater.newer(info) ? "APK baru tersedia: v" + info.ver : "APK sudah terbaru (v" + BuildConfig.VERSION_NAME + ")", Toast.LENGTH_LONG).show();
+            });
+        }).start();
+    }
+
+    private void renderApkCard() {
+        apkBox.removeAllViews();
+        if (apkInfo == null || !ApkUpdater.newer(apkInfo)) return;
+        View v = row(apkBox, R.drawable.ic_info, "APK baru tersedia", "v" + apkInfo.ver + " (kamu v" + BuildConfig.VERSION_NAME + ") • ketuk untuk mengunduh & memasang", x -> installApk());
+        ((android.widget.LinearLayout.LayoutParams) v.getLayoutParams()).bottomMargin = (int) (12 * getResources().getDisplayMetrics().density);
+    }
+
+    private void installApk() {
+        final ApkUpdater.Info info = apkInfo;
+        if (info == null) return;
+        Toast.makeText(this, "Mengunduh APK (" + (info.size / 1048576) + " MB)…", Toast.LENGTH_LONG).show();
+        new Thread(() -> {
+            try {
+                final File f = ApkUpdater.download(this, info);
+                runOnUiThread(() -> { if (alive && !ApkUpdater.install(this, f)) Toast.makeText(this, "Izinkan 'pasang aplikasi dari sumber ini' untuk CHISA-AI, lalu ketuk lagi.", Toast.LENGTH_LONG).show(); });
+            } catch (Throwable t) { runOnUiThread(() -> Toast.makeText(this, "Gagal: " + t.getMessage(), Toast.LENGTH_LONG).show()); }
+        }).start();
+    }
+
+    private void resetSession() {
+        if (running()) { Toast.makeText(this, "Hentikan bot dulu.", Toast.LENGTH_LONG).show(); return; }
+        new android.app.AlertDialog.Builder(this).setTitle("Reset sesi WhatsApp?")
+                .setMessage("Login WhatsApp bot dihapus. Kamu perlu menautkan ulang dengan kode pairing. Data bot lain tidak dihapus.")
+                .setPositiveButton("Reset", (d, w) -> { deleteTree(new File(getFilesDir(), "bot/session")); Toast.makeText(this, "Sesi dihapus. Tekan Mulai bot untuk pairing ulang.", Toast.LENGTH_LONG).show(); })
+                .setNegativeButton("Batal", null).show();
+    }
+
+    private static void deleteTree(File f) {
+        File[] fs = f.listFiles();
+        if (fs != null) for (File x : fs) deleteTree(x);
+        f.delete();
     }
 
     // ---------- update script dari GitHub ----------
@@ -337,6 +394,20 @@ public class MainActivity extends Activity {
     }
 
     // ---------- log & terminal ----------
+    /** ekor log yang menyambung lintas arsip (bot.log.N … bot.log), supaya riwayat sebelum rotasi/restart tetap terlihat */
+    private String tailAll(int max) {
+        StringBuilder sb = new StringBuilder();
+        File base = new File(getFilesDir(), "bot.log");
+        String cur = tail(base, max);
+        sb.append(cur);
+        for (int i = 1; i <= 5 && sb.length() < max; i++) {
+            File a = new File(getFilesDir(), "bot.log." + i);
+            if (!a.exists()) break;
+            sb.insert(0, tail(a, max - sb.length()));
+        }
+        return sb.toString();
+    }
+
     private String tail(File f, int max) {
         try (RandomAccessFile r = new RandomAccessFile(f, "r")) {
             long len = r.length(); long from = Math.max(0, len - max);
@@ -427,7 +498,7 @@ public class MainActivity extends Activity {
         if (!alive) return;
         boolean run = running();
         toggle.setText(run ? "■  Hentikan bot" : "▶  Mulai bot");
-        String raw = tail(new File(getFilesDir(), "bot.log"), 150000);
+        String raw = tailAll(150000);
         if (!run) raw = raw + lastExit();
         String cur = raw;
         int sx = cur.lastIndexOf("sesi baru"); if (sx > 0) cur = cur.substring(sx);

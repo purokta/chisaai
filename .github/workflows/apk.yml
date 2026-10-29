@@ -106,4 +106,5 @@ jobs:
         run: |
           V=$(node -p "require('./package.json').version")
           gh release delete apk-latest -y --cleanup-tag || true
-          gh release create apk-latest chisa-ai.apk --title "CHISA-AI APK" --notes "CHISA-AI v$V (APK). Pasang, isi nomor, tekan MULAI BOT. Pasang di atas versi lama untuk memperbarui (login & data tetap)."
+          NOTES=$(printf 'CHISA-AI v%s (APK). Pasang, isi nomor, tekan MULAI BOT. Pasang di atas versi lama untuk memperbarui (login & data tetap).\n\nversionCode: %s' "$V" "${{ github.run_number }}")
+          gh release create apk-latest chisa-ai.apk --title "CHISA-AI APK" --notes "$NOTES"

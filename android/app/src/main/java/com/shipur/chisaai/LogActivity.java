@@ -49,14 +49,21 @@ public class LogActivity extends Activity {
         });
         findViewById(R.id.save).setOnClickListener(v -> save());
         findViewById(R.id.share).setOnClickListener(v -> share());
-        findViewById(R.id.clear).setOnClickListener(v -> {
-            new File(getFilesDir(), "bot.log").delete(); new File(getFilesDir(), "bot.log.1").delete();
-            Toast.makeText(this, "Log dihapus", Toast.LENGTH_SHORT).show();
-        });
+        findViewById(R.id.clear).setOnClickListener(v -> new android.app.AlertDialog.Builder(this).setTitle("Hapus semua log?")
+                .setMessage("Log tidak dihapus otomatis. Simpan dulu kalau masih dibutuhkan.")
+                .setPositiveButton("Hapus", (d, w) -> {
+                    for (File f : parts()) f.delete();
+                    Toast.makeText(this, "Log dihapus", Toast.LENGTH_SHORT).show();
+                }).setNegativeButton("Batal", null).show());
         tick();
     }
 
-    private File[] parts() { return new File[]{new File(getFilesDir(), "bot.log.1"), new File(getFilesDir(), "bot.log")}; }
+    private File[] parts() {
+        File[] r = new File[6];
+        for (int i = 0; i < 5; i++) r[i] = new File(getFilesDir(), "bot.log." + (5 - i)); // tertua -> terbaru
+        r[5] = new File(getFilesDir(), "bot.log");
+        return r;
+    }
 
     /** gabungan log lama + log sekarang ke satu file di cache */
     private File combined() throws Exception {
@@ -107,22 +114,27 @@ public class LogActivity extends Activity {
 
     private String read() {
         try {
-            File f = new File(getFilesDir(), "bot.log");
-            if (!f.exists()) return "";
-            try (RandomAccessFile r = new RandomAccessFile(f, "r")) {
-                long len = r.length(), from = Math.max(0, len - SHOW);
-                r.seek(from); byte[] b = new byte[(int) (len - from)]; r.readFully(b);
-                String s = new String(b, "UTF-8").replaceAll("\u001B\\[[;\\d?]*[A-Za-z]", "");
-                return from > 0 ? "… (bagian awal dipotong di layar; file simpan/bagikan tetap lengkap)\n" + s : s;
+            StringBuilder sb = new StringBuilder();
+            File[] ps = parts();
+            for (int i = ps.length - 1; i >= 0 && sb.length() < SHOW; i--) {
+                File f = ps[i];
+                if (!f.exists()) continue;
+                try (RandomAccessFile r = new RandomAccessFile(f, "r")) {
+                    long len = r.length(), want = SHOW - sb.length(), from = Math.max(0, len - want);
+                    r.seek(from); byte[] b = new byte[(int) (len - from)]; r.readFully(b);
+                    sb.insert(0, new String(b, "UTF-8"));
+                }
             }
+            String s = sb.toString().replaceAll("\u001B\\[[;\\d?]*[A-Za-z]", "");
+            return s.length() >= SHOW ? "… (bagian awal dipotong di layar; file simpan/bagikan tetap lengkap)\n" + s : s;
         } catch (Exception e) { return ""; }
     }
 
     private void tick() {
         if (!alive) return;
         String s = read();
-        File f = new File(getFilesDir(), "bot.log"), o = new File(getFilesDir(), "bot.log.1");
-        info.setText(((f.length() + (o.exists() ? o.length() : 0)) / 1024) + " KB tercatat • diperbarui otomatis");
+        long tot = 0; for (File pf : parts()) tot += pf.length();
+        info.setText((tot / 1024) + " KB tercatat • tidak dihapus otomatis • diperbarui otomatis");
         if (!s.contentEquals(text.getText())) {
             boolean bottom = scroll.getChildAt(0).getBottom() - (scroll.getHeight() + scroll.getScrollY()) < 150;
             text.setText(s.isEmpty() ? "(log kosong)" : s);

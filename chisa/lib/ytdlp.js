@@ -66,6 +66,7 @@ async function python() {
   return null
 }
 async function resolveBinary() {
+  if (process.env.CHISA_ANDROID) throw new Error('yt-dlp tidak tersedia di Android')
   const fails = [], c = cfg()
   if (c.ytdlpPath) { if (await verify(c.ytdlpPath)) return { command: c.ytdlpPath, prefix: [], source: 'env' }; fails.push(`ytdlpPath (${c.ytdlpPath}) tidak jalan`) }
   if (await verify('yt-dlp')) return { command: 'yt-dlp', prefix: [], source: 'system' }
