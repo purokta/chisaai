@@ -78,7 +78,6 @@ public class MainActivity extends BaseActivity {
     private final Runnable nextBanner = this::playBanner;
     private SharedPreferences prefs;
     private boolean alive = true;
-    private android.webkit.WebView ytView;
     private static final int REQ_ICON = 77;
     private String lastLogShown = "";
 
@@ -125,7 +124,6 @@ public class MainActivity extends BaseActivity {
         shellBar = findViewById(R.id.shellBar); shellIn = findViewById(R.id.shellIn);
         subtitle.setText("CHISA-AI by shipur • v" + BuildConfig.VERSION_NAME);
 
-        ytView = findViewById(R.id.ytView);
         setupLook();
         setupYt();
         toggle.setOnClickListener(v -> toggle());
@@ -329,8 +327,9 @@ public class MainActivity extends BaseActivity {
     private void restartBanner() { h.removeCallbacks(nextBanner); playBanner(); }
 
     private void playBanner() {
-        if (surface == null || !alive || ytOn()) return;
+        if (surface == null || !alive) return;
         stopBanner();
+        if (ytOn()) { playYt(); return; }
         int slot = 1; // cari slot berikutnya yang ada isinya (custom), slot 1 selalu ada (bawaan)
         for (int k = 0; k < 4; k++) { int s = bannerIdx % 4 + 1; bannerIdx++; if (s == 1 || BannerStore.custom(this, s) != null) { slot = s; break; } }
         File cf = BannerStore.custom(this, slot);
@@ -534,12 +533,15 @@ public class MainActivity extends BaseActivity {
             termText.setText(colorize(raw.isEmpty() ? "(log kosong)" : raw));
             if (bottom || termScroll.getScrollY() == 0) termScroll.post(() -> termScroll.fullScroll(View.FOCUS_DOWN));
         }
+        if (page == 2) showYtStatus();
+        long ym = ytFile().lastModified();
+        if (ym != lastYtMod) { boolean first = lastYtMod == 0; lastYtMod = ym; if (!first && ytOn()) restartBanner(); }
         h.postDelayed(this::tick, 1500);
     }
 
-    @Override protected void onPause() { super.onPause(); if (ytView != null) ytView.onPause(); }
-    @Override protected void onResume() { super.onResume(); if (ytView != null) ytView.onResume(); }
-    @Override protected void onDestroy() { if (ytView != null) { ytView.stopLoading(); ytView.destroy(); } alive = false; h.removeCallbacksAndMessages(null); stopBanner(); super.onDestroy(); }
+    @Override protected void onPause() { super.onPause(); stopBanner(); } // hentikan suara banner saat aplikasi ditinggalkan
+    @Override protected void onResume() { super.onResume(); if (surface != null) restartBanner(); }
+    @Override protected void onDestroy() { alive = false; h.removeCallbacksAndMessages(null); stopBanner(); super.onDestroy(); }
 
     // ---------- tampilan: warna, mode, ikon ----------
     private static final String[] ICON_KEYS = {"Default", "Sakura", "Midnight", "Sky", "Mint", "Cream"};
@@ -589,7 +591,7 @@ public class MainActivity extends BaseActivity {
         android.widget.LinearLayout ir = findViewById(R.id.iconRow);
         String curIcon = prefs.getString("icon", "Default");
         for (int i = 0; i < ICON_KEYS.length; i++) {
-            final String key = ICON_KEYS[i];
+            final String key = ICON_KEYS[i]; final int idx = i;
             android.widget.LinearLayout c = new android.widget.LinearLayout(this);
             c.setOrientation(android.widget.LinearLayout.VERTICAL); c.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
             c.setPadding(dp(6), dp(4), dp(6), dp(4));
@@ -598,7 +600,7 @@ public class MainActivity extends BaseActivity {
             TextView t = new TextView(this); t.setText(ICON_NAMES[i]); t.setTextSize(11); t.setGravity(android.view.Gravity.CENTER);
             t.setPadding(0, dp(4), 0, 0); c.addView(t);
             if (key.equals(curIcon)) c.setBackgroundResource(R.drawable.bg_circle);
-            c.setOnClickListener(v -> setIcon(key));
+            c.setOnClickListener(v -> iconDialog(key, idx));
             ir.addView(c);
         }
         findViewById(R.id.iconCustom).setOnClickListener(v -> {
@@ -608,6 +610,33 @@ public class MainActivity extends BaseActivity {
         com.google.android.material.materialswitch.MaterialSwitch ac = findViewById(R.id.autoClear);
         ac.setChecked(prefs.getBoolean("autoClear", true));
         ac.setOnCheckedChangeListener((bv, on) -> prefs.edit().putBoolean("autoClear", on).apply());
+    }
+
+    /** pilihan: ganti ikon aplikasi (alias) atau pasang pintasan ber-ikon di layar utama (cara ini paling pasti di semua peluncur) */
+    private void iconDialog(String key, int idx) {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Ikon " + ICON_NAMES[idx])
+                .setMessage("• Ganti ikon aplikasi: ikon aplikasi berubah, tapi sebagian peluncur (MIUI/HyperOS) baru memperbaruinya setelah beberapa menit atau setelah peluncur dimulai ulang.\n\n• Pasang pintasan: menaruh ikon ini langsung di layar utama. Di POCO/Xiaomi, izinkan dulu \"Pintasan layar utama\" di Info aplikasi > Izin lainnya.")
+                .setPositiveButton("Ganti ikon aplikasi", (d, w) -> setIcon(key))
+                .setNeutralButton("Pasang pintasan", (d, w) -> pinResIcon(ICON_RES[idx], key))
+                .setNegativeButton("Batal", null).show();
+    }
+
+    private void pinResIcon(int res, String key) {
+        try {
+            if (Build.VERSION.SDK_INT < 26) throw new Exception("butuh Android 8+");
+            android.graphics.drawable.Drawable dr = getDrawable(res);
+            Bitmap bm = Bitmap.createBitmap(192, 192, Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas cv = new android.graphics.Canvas(bm);
+            dr.setBounds(0, 0, 192, 192); dr.draw(cv);
+            android.content.pm.ShortcutManager sm = getSystemService(android.content.pm.ShortcutManager.class);
+            if (!sm.isRequestPinShortcutSupported()) throw new Exception("peluncur tidak mendukung pintasan");
+            android.content.pm.ShortcutInfo si = new android.content.pm.ShortcutInfo.Builder(this, "chisa-" + key)
+                    .setShortLabel("CHISA-AI").setIcon(android.graphics.drawable.Icon.createWithBitmap(bm))
+                    .setIntent(new Intent(this, MainActivity.class).setAction(Intent.ACTION_MAIN)).build();
+            sm.requestPinShortcut(si, null);
+            Toast.makeText(this, "Konfirmasi pintasan di layar. Kalau tidak muncul, izinkan \"Pintasan layar utama\" untuk aplikasi ini.", Toast.LENGTH_LONG).show();
+        } catch (Throwable t) { Toast.makeText(this, "Gagal: " + t.getMessage(), Toast.LENGTH_LONG).show(); }
     }
 
     /** ganti ikon peluncur lewat activity-alias */
@@ -649,61 +678,76 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    // ---------- banner YouTube ----------
-    private boolean ytOn() { return prefs.getBoolean("ytOn", false) && ytId(prefs.getString("ytLink", "")) != null; }
+    // ---------- banner YouTube (file diunduh bot, diputar di aplikasi) ----------
+    private File ytFile() { return new File(BannerStore.dir(this), "ytbanner.mp4"); }
+    private File ytReq() { File d = new File(getFilesDir(), "bot/data"); d.mkdirs(); return new File(d, "ytbanner-req.json"); }
+    private File ytStat() { return new File(getFilesDir(), "bot/data/ytbanner-status.json"); }
+    private boolean ytOn() { return prefs.getBoolean("ytOn", false) && ytFile().length() > 10000; }
+    private TextView ytStatus;
+    private long lastYtMod = 0;
 
-    static String ytId(String url) {
-        if (url == null) return null;
-        Matcher m = Pattern.compile("(?:youtu\\.be/|v=|/embed/|/shorts/|/live/)([A-Za-z0-9_-]{11})").matcher(url.trim());
-        if (m.find()) return m.group(1);
-        return url.trim().matches("[A-Za-z0-9_-]{11}") ? url.trim() : null;
+    private String readSmall(File f) {
+        try (java.io.FileInputStream in = new java.io.FileInputStream(f)) { byte[] b = new byte[(int) Math.min(f.length(), 4000)]; int n = in.read(b); return new String(b, 0, Math.max(n, 0), "UTF-8"); } catch (Exception e) { return ""; }
+    }
+
+    private void showYtStatus() {
+        if (ytStatus == null) return;
+        String t;
+        File st = ytStat();
+        String raw = st.exists() ? readSmall(st) : "";
+        try {
+            org.json.JSONObject o = new org.json.JSONObject(raw);
+            String s = o.optString("state"), msg = o.optString("msg");
+            t = ("busy".equals(s) ? "⏳ " : "ok".equals(s) ? "✅ " : "❌ ") + msg;
+        } catch (Exception e) { t = ytFile().length() > 10000 ? "✅ Video tersimpan (" + (ytFile().length() / 1024) + " KB)" : "Belum ada video. Isi link lalu tekan Terapkan (bot harus menyala)."; }
+        ytStatus.setText(t);
     }
 
     private void setupYt() {
-        TextInputEditText link = findViewById(R.id.ytLink), start = findViewById(R.id.ytStart);
+        TextInputEditText link = findViewById(R.id.ytLink), start = findViewById(R.id.ytStart), dur = findViewById(R.id.ytDur);
         MaterialSwitch en = findViewById(R.id.ytEnable), snd = findViewById(R.id.ytSound);
-        link.setText(prefs.getString("ytLink", "")); start.setText(String.valueOf(prefs.getInt("ytStart", 0)));
+        ytStatus = findViewById(R.id.ytStatus);
+        link.setText(prefs.getString("ytLink", "")); start.setText(String.valueOf(prefs.getInt("ytStart", 0))); dur.setText(String.valueOf(prefs.getInt("ytDur", 0)));
         en.setChecked(prefs.getBoolean("ytOn", false)); snd.setChecked(prefs.getBoolean("ytSound", false));
-        android.webkit.WebSettings ws = ytView.getSettings();
-        ws.setJavaScriptEnabled(true); ws.setMediaPlaybackRequiresUserGesture(false); ws.setDomStorageEnabled(true);
-        ytView.setBackgroundColor(0xFF000000);
-        ytView.setWebChromeClient(new android.webkit.WebChromeClient());
-        ws.setUserAgentString(ws.getUserAgentString().replace("; wv", "")); // UA WebView ("wv") kadang ditolak pemutar
-        ytView.setWebViewClient(new android.webkit.WebViewClient() {
-            @Override public void onReceivedError(android.webkit.WebView v, android.webkit.WebResourceRequest r, android.webkit.WebResourceError e) {
-                if (r.isForMainFrame()) Toast.makeText(MainActivity.this, "Banner YouTube gagal dimuat: " + e.getDescription() + ". Cek internet / coba video lain.", Toast.LENGTH_LONG).show();
-            }
-        });
-        snd.setOnCheckedChangeListener((bv, on) -> { prefs.edit().putBoolean("ytSound", on).apply(); applyYt(); });
-        en.setOnCheckedChangeListener((bv, on) -> {
-            if (on && ytId(String.valueOf(link.getText())) == null) { bv.setChecked(false); Toast.makeText(this, "Isi link YouTube yang valid dulu", Toast.LENGTH_SHORT).show(); return; }
-            prefs.edit().putBoolean("ytOn", on).apply(); applyYt();
-        });
+        snd.setOnCheckedChangeListener((bv, on) -> { prefs.edit().putBoolean("ytSound", on).apply(); if (mp != null) { try { mp.setVolume(on ? 1f : 0f, on ? 1f : 0f); } catch (Exception ignored) { } } });
+        en.setOnCheckedChangeListener((bv, on) -> { prefs.edit().putBoolean("ytOn", on).apply(); restartBanner(); });
         findViewById(R.id.ytApply).setOnClickListener(v -> {
             String l = String.valueOf(link.getText()).trim();
-            if (ytId(l) == null) { Toast.makeText(this, "Link YouTube tidak valid", Toast.LENGTH_SHORT).show(); return; }
-            int st = 0; try { st = Integer.parseInt(String.valueOf(start.getText()).trim()); } catch (Exception ignored) { }
-            prefs.edit().putString("ytLink", l).putInt("ytStart", Math.max(0, st)).putBoolean("ytOn", true).apply();
-            en.setChecked(true); applyYt();
-            Toast.makeText(this, "Banner YouTube diterapkan — lihat di Home", Toast.LENGTH_SHORT).show();
+            if (!l.matches("(?i)^https?://(www\\.|m\\.|music\\.)?(youtube\\.com|youtu\\.be)/.+")) { Toast.makeText(this, "Link YouTube tidak valid", Toast.LENGTH_SHORT).show(); return; }
+            int st = 0, du = 0;
+            try { st = Integer.parseInt(String.valueOf(start.getText()).trim()); } catch (Exception ignored) { }
+            try { du = Integer.parseInt(String.valueOf(dur.getText()).trim()); } catch (Exception ignored) { }
+            boolean same = l.equals(prefs.getString("ytLink", "")) && ytFile().length() > 10000;
+            prefs.edit().putString("ytLink", l).putInt("ytStart", Math.max(0, st)).putInt("ytDur", Math.max(0, du)).putBoolean("ytOn", true).apply();
+            en.setChecked(true);
+            if (same) { restartBanner(); Toast.makeText(this, "Pengaturan diterapkan", Toast.LENGTH_SHORT).show(); showYtStatus(); return; }
+            if (!running()) { Toast.makeText(this, "Nyalakan bot dulu — video diunduh oleh bot", Toast.LENGTH_LONG).show(); }
+            try (java.io.FileOutputStream o = new java.io.FileOutputStream(ytReq())) { o.write(new org.json.JSONObject().put("link", l).put("ts", System.currentTimeMillis()).toString().getBytes()); } catch (Exception e) { Toast.makeText(this, "Gagal membuat permintaan: " + e.getMessage(), Toast.LENGTH_LONG).show(); }
+            try { new File(getFilesDir(), "bot/data/ytbanner-status.json").delete(); } catch (Exception ignored) { }
+            if (ytStatus != null) ytStatus.setText("⏳ Menunggu bot mengunduh…");
         });
-        applyYt();
+        showYtStatus();
     }
 
-    private void applyYt() {
-        if (!ytOn()) {
-            ytView.loadUrl("about:blank"); ytView.setVisibility(View.GONE); banner.setVisibility(View.VISIBLE);
-            if (surface != null) restartBanner();
-            return;
-        }
-        stopBanner(); h.removeCallbacks(nextBanner);
-        bannerImg.setVisibility(View.GONE); banner.setVisibility(View.GONE); ytView.setVisibility(View.VISIBLE);
-        String id = ytId(prefs.getString("ytLink", "")); boolean sound = prefs.getBoolean("ytSound", false);
-        // embed langsung dengan Referer (tanpa Referer YouTube menolak dengan "error 153")
-        String url = "https://www.youtube.com/embed/" + id + "?autoplay=1&mute=" + (sound ? 0 : 1) + "&controls=0&loop=1&playlist=" + id
-                + "&playsinline=1&modestbranding=1&rel=0&start=" + prefs.getInt("ytStart", 0) + "&origin=https://www.youtube.com";
-        java.util.Map<String, String> hd = new java.util.HashMap<>();
-        hd.put("Referer", "https://www.youtube.com/");
-        ytView.loadUrl(url, hd);
+    /** putar video YouTube yang sudah diunduh (dengan suara bila saklar suara aktif), mulai dari detik yang diatur */
+    private void playYt() {
+        bannerImg.setVisibility(View.GONE);
+        final boolean sound = prefs.getBoolean("ytSound", false);
+        final int st = prefs.getInt("ytStart", 0) * 1000, du = prefs.getInt("ytDur", 0) * 1000;
+        try {
+            mp = new MediaPlayer();
+            mp.setDataSource(ytFile().getPath());
+            mp.setSurface(surface);
+            mp.setVolume(sound ? 1f : 0f, sound ? 1f : 0f);
+            mp.setOnPreparedListener(m -> {
+                crop();
+                if (st > 0 && st < m.getDuration()) m.seekTo(st);
+                m.start();
+                if (du > 0) h.postDelayed(nextBanner, du); // lewat durasi -> ulang dari awal klip
+            });
+            mp.setOnCompletionListener(m -> playBanner());
+            mp.setOnErrorListener((m, w, e) -> { stopBanner(); h.postDelayed(nextBanner, 3000); return true; });
+            mp.prepareAsync();
+        } catch (Exception e) { stopBanner(); h.postDelayed(nextBanner, 3000); }
     }
 }

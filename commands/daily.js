@@ -55,18 +55,10 @@ module.exports = [
         `💳 Saldo: ${fmt(r.balance)}\n\n` +
         `Pity SSR: ${r.pitySSR}/${gacha.cfg().pitySSR}\nBerikutnya: ${left}`
       let sent = false
-      const tryImg = async url => {
-        try { // unduh sendiri dulu; kalau gagal biar WhatsApp/Telegram yang mengambil dari link
-          const { buffer } = await http.getBuffer(url, { timeout: 12000, maxMB: 5 })
-          await ctx.send({ image: buffer, caption: text, ...tgButtons(ctx) })
-        } catch (e1) {
-          console.log('[gacha] gambar (unduh) gagal:', e1?.message || e1, url)
-          await ctx.send({ image: { url }, caption: text, ...tgButtons(ctx) })
-        }
-        sent = true
-      }
-      try { await tryImg(await gacha.imageFor(r.name, r.img)) } catch (e) { console.log('[gacha] gambar karakter gagal:', e?.message || e) }
-      if (!sent) { try { const u = await gacha.randomAnime(); if (u) await tryImg(u); else console.log('[gacha] gambar acak: tidak ada link') } catch (e) { console.log('[gacha] gambar acak gagal:', e?.message || e) } }
+      try {
+        const im = await require('../lib/animeimg').imageFor(r.name, r.img)
+        if (im.buffer) { await ctx.send({ image: im.buffer, caption: text, ...tgButtons(ctx) }); sent = true } else console.log('[gacha] semua sumber gambar gagal:', im.errors.join(' | '))
+      } catch (e) { console.log('[gacha] kirim gambar gagal:', e?.message || e) }
       if (!sent) await ctx.send({ text, ...tgButtons(ctx) })
     }
   },

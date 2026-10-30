@@ -45,15 +45,18 @@ module.exports = [{
 
     const J = require('../lib/jsdl')
     out.push(`Library: ytdl-core ${lib('@distube/ytdl-core') ? 'ada' : 'TIDAK ADA'} • youtubei.js ${(() => { try { require.resolve('youtubei.js'); return 'ada' } catch { return 'TIDAK ADA' } })()} • btch ${lib('btch-downloader') ? 'ada' : 'TIDAK ADA'}`)
-    await step('YouTube: info (ytdl-core)', async () => { const y = lib('@distube/ytdl-core') || lib('ytdl-core'); if (!y) throw new Error('tidak terpasang'); const i = await y.getInfo('https://www.youtube.com/watch?v=jNQXAC9IVRw'); return i.videoDetails.title }, out)
+    const YT = 'https://www.youtube.com/watch?v=jNQXAC9IVRw'
+    await step('YouTube jalur 1: ytdl-core', async () => { const d = fs.mkdtempSync(path.join(TMP, 'diag-')); try { const r = await J.youtubeFile(YT, 'audio', d); return fs.statSync(r.file).size + ' byte' } finally { try { fs.rmSync(d, { recursive: true, force: true }) } catch {} } }, out)
+    await step('YouTube jalur 2: youtubei.js', async () => { const d = fs.mkdtempSync(path.join(TMP, 'diag-')); try { const r = await J.youtubeInnertube(YT, 'audio', d); return fs.statSync(r.file).size + ' byte' } finally { try { fs.rmSync(d, { recursive: true, force: true }) } catch {} } }, out)
+    await step('play/mp3 lengkap (downloader → kirim audio)', async () => { const r = await require('../lib/downloader').download(YT, 'youtube', true); const f = r.files.find(x => x.type === 'audio') || r.files[0]; await require('../lib/audiosend').sendAudio(ctx, f.buffer, 'tes-diag'); return f.buffer.length + ' byte terkirim' }, out)
     await step('YouTube: unduh audio (semua jalur)', async () => {
       const dir = fs.mkdtempSync(path.join(TMP, 'diag-'))
       try { const r = await J.youtubeAny('https://www.youtube.com/watch?v=jNQXAC9IVRw', 'audio', dir); return fs.statSync(r.file).size + ' byte' }
       finally { try { fs.rmSync(dir, { recursive: true, force: true }) } catch {} }
     }, out)
     await step('Muat ytdl-core', async () => { if (!lib('@distube/ytdl-core') && !lib('ytdl-core')) throw new Error(J.loadErr['@distube/ytdl-core'] || J.loadErr['ytdl-core'] || 'tidak ada'); return 'ok' }, out)
-    await step('Gambar anime (waifu.pics)', async () => { const u = await require('../lib/gacha').randomAnime(); if (!u) throw new Error('tanpa link'); const { buffer } = await http.getBuffer(u, { timeout: 12000, maxMB: 5 }); return buffer.length + ' byte' }, out)
-    await step('Gambar karakter (Jikan)', async () => { const g = require('../lib/gacha'); const u = await g.imageFor('Rem'); if (!u) throw new Error('tanpa link'); const { buffer } = await http.getBuffer(u, { timeout: 12000, maxMB: 5 }); return buffer.length + ' byte' }, out)
+    await step('Gambar anime (semua sumber)', async () => { const im = await require('../lib/animeimg').randomImage(); if (!im.buffer) throw new Error(im.errors.join(' | ').slice(0, 150)); return `${im.source} ${im.buffer.length} byte` + (im.errors.length ? ' (gagal: ' + im.errors.length + ')' : '') }, out)
+    await step('Gambar karakter (Rem)', async () => { const im = await require('../lib/animeimg').imageFor('Rem'); if (!im.buffer) throw new Error(im.errors.join(' | ').slice(0, 150)); return `${im.source} ${im.buffer.length} byte` }, out)
     await step('Cari YouTube', async () => { const r = await require('../chisa/lib/ytfallback').search('lofi', 2); if (!r.length) throw new Error('kosong'); return r[0].title }, out)
     out.push(`\nTotal ${Math.round(ms(t0) / 1000)} detik. Kirim hasil ini ke pengembang bila ada ❌.`)
     await ctx.reply(out.join('\n'))

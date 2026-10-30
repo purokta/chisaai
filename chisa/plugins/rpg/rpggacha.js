@@ -50,13 +50,10 @@ module.exports = {
       R.save()
       const cap = t + `\n\n🎟️ Tiket dipakai ${tickets} • 💰 -${R.fmt(gold)}\nLihat koleksi: ${prefix}companion`
       try { // sertakan gambar anime
-        const g = require('../../../lib/gacha'), http = require('../../../lib/http')
-        const url = await g.randomAnime()
-        if (url && ctx.sock?.sendMessage) {
-          const { buffer } = await http.getBuffer(url, { timeout: 12000, maxMB: 5 })
-          return await ctx.sock.sendMessage(ctx.from || ctx.m?.chat || ctx.m?.key?.remoteJid, { image: buffer, caption: cap }, { quoted: ctx.m })
-        }
-      } catch {}
+        const im = await require('../../../lib/animeimg').randomImage()
+        if (im.buffer && ctx.sock?.sendMessage) return await ctx.sock.sendMessage(ctx.from || ctx.m?.chat || ctx.m?.key?.remoteJid, { image: im.buffer, caption: cap }, { quoted: ctx.m })
+        console.log('[summon] gambar gagal:', (im.errors || []).join(' | '))
+      } catch (e) { console.log('[summon] kirim gambar gagal:', e?.message || e) }
       return reply(cap)
     }
 

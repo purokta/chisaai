@@ -9,6 +9,7 @@ const handler = require('./lib/handler')
 const { loadBaileys } = require('./lib/baileys')
 const { cleanTmp } = require('./lib/ffmpeg')
 const reminders = require('./lib/reminders')
+try { require('./lib/ytbanner').start() } catch (e) { console.log('[ytbanner]', e?.message || e) }
 const db = require('./lib/db')
 const status = require('./lib/status')
 const assets = require('./lib/assets')

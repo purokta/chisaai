@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       ffmpeg:
-        description: 'Sertakan ffmpeg (stiker, voice note, play audio). Matikan kalau APK gagal dipasang'
+        description: 'Sertakan ffmpeg (biasanya DIMATIKAN Android, bikin APK +puluhan MB). Biarkan mati'
         type: boolean
-        default: true
+        default: false
   push:
     branches: [main]
     paths: ['package.json', 'android/**', '.github/workflows/apk.yml']
@@ -85,8 +85,8 @@ jobs:
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
           ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
 
-      - name: ffmpeg untuk stiker/video (aktif bawaan; bisa dimatikan saat Run workflow)
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.ffmpeg }}
+      - name: ffmpeg (nonaktif bawaan — biner statis glibc dimatikan Android lewat SIGSYS; aktifkan hanya untuk uji coba)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.ffmpeg }}
         continue-on-error: true
         run: |
           mkdir -p android/app/src/main/jniLibs/arm64-v8a

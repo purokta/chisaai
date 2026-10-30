@@ -39,6 +39,19 @@ module.exports = [{
       await ctx.reply(`✅ Banner ${slot} diganti (klip ${dur} detik mulai detik ke-${start}). Ketik menu untuk melihat.`)
     } catch (e) {
       const m = String(e.message || e)
+      // ffmpeg tidak bisa jalan di Android (diblokir sistem): pakai video pendek apa adanya, tanpa dipotong
+      if (/ENOENT|EACCES|SIGSYS|Command failed|ffmpeg/i.test(m)) {
+        try {
+          const J = require('../lib/jsdl')
+          const d2 = Y.tmpDir()
+          try {
+            const r = await J.youtubeAny(link, 'video', d2, { maxHeight: 360, quality: '360p', maxMB: 12, maxDurationMin: 3 })
+            clear(slot)
+            fs.copyFileSync(r.file, path.join(CUSTOM, `banner${slot}.mp4`))
+            return await ctx.reply(`✅ Banner ${slot} diganti (video dipakai utuh karena ffmpeg tidak tersedia; pilih video pendek ≤ 3 menit agar ringan). Ketik menu untuk melihat.`)
+          } finally { Y.cleanup(d2) }
+        } catch (e2) { return ctx.reply('❌ Gagal membuat banner: ' + String(e2?.userMessage || e2?.message || e2).split('\n')[0].slice(0, 200)) }
+      }
       await ctx.reply('❌ Gagal membuat banner: ' + (/ENOENT|EACCES/.test(m) ? 'ffmpeg tidak tersedia di perangkat ini.' : m.split('\n')[0].slice(0, 200)))
     } finally { Y.cleanup(dir) }
   }

@@ -1,3 +1,9 @@
+## 3.10.9 — 31 Okt 2026
+- ffmpeg dibuang dari APK (bawaan): biner statis glibc dimatikan Android (SIGSYS), jadi tidak pernah jalan; APK jauh lebih kecil. Voice note menu sudah OGG siap kirim; thumbnail memakai JPEG apa adanya; `#setbanner` memakai video pendek utuh (≤ 3 menit) bila ffmpeg tidak ada.
+- Gacha/summon: gambar dari beberapa sumber bergantian (AniList, nekos.best, waifu.pics, waifu.im, nekos.life); `#diag` menunjukkan sumber mana yang gagal.
+- Aplikasi: banner YouTube diunduh bot lalu diputar pemutar aplikasi (tanpa embed YouTube, tanpa error 152); status unduhan tampil di tab Banner. Pilihan ikon: ganti ikon aplikasi atau pasang pintasan ber-ikon di layar utama.
+- `#diag`: tes terpisah ytdl-core, youtubei.js, dan alur play/mp3 lengkap sampai terkirim.
+
 ## 3.10.8 — 30 Okt 2026
 - Dari hasil #diag: jaringan Google/WhatsApp/Telegram/gambar anime gagal sementara YouTube jalan -> kemungkinan IPv6 HP tidak tersambung. Bot kini mengutamakan IPv4 (dns ipv4first + autoSelectFamily). Ini juga bisa mengurangi delay pesan.
 - Play YouTube: galat "invalid onError method" (undici ytdl-core tidak cocok dengan fetch bawaan Node 18) diatasi dengan memakai fetch undici milik ytdl-core selama proses unduh.
