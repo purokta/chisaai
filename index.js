@@ -1,4 +1,5 @@
 require('./lib/quiet')
+require('./lib/node18-compat').install()
 const pino = require('pino')
 const readline = require('readline')
 const config = require('./config')

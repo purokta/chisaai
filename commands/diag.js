@@ -7,7 +7,10 @@ const ms = t => Date.now() - t
 async function step(name, fn, out) {
   const t = Date.now()
   try { const r = await fn(); out.push(`✅ ${name} (${ms(t)} ms)${r ? ' — ' + String(r).slice(0, 120) : ''}`) }
-  catch (e) { out.push(`❌ ${name}: ${String(e?.message || e).split('\n')[0].slice(0, 160)}`) }
+  catch (e) {
+    const extra = [e?.signal && 'sinyal ' + e.signal, e?.code && 'kode ' + e.code, e?.cause?.code && 'sebab ' + e.cause.code, String(e?.stderr || '').trim().split('\n').slice(-1)[0]].filter(Boolean).join(' • ')
+    out.push(`❌ ${name}: ${String(e?.message || e).split('\n')[0].slice(0, 120)}${extra ? ' [' + extra.slice(0, 140) + ']' : ''}`)
+  }
 }
 const lib = n => { try { return require(n) } catch { return null } }
 

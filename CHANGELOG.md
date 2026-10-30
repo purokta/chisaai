@@ -1,3 +1,9 @@
+## 3.10.8 — 30 Okt 2026
+- Dari hasil #diag: jaringan Google/WhatsApp/Telegram/gambar anime gagal sementara YouTube jalan -> kemungkinan IPv6 HP tidak tersambung. Bot kini mengutamakan IPv4 (dns ipv4first + autoSelectFamily). Ini juga bisa mengurangi delay pesan.
+- Play YouTube: galat "invalid onError method" (undici ytdl-core tidak cocok dengan fetch bawaan Node 18) diatasi dengan memakai fetch undici milik ytdl-core selama proses unduh.
+- youtubei.js: regex `\p{Emoji}` di modul ESM ditambal saat build APK (scripts/patch-regex.js), karena penambal runtime hanya untuk CommonJS.
+- #diag menampilkan sinyal/kode/penyebab/stderr untuk tiap ❌ (mis. ffmpeg).
+
 ## 3.10.7 — 30 Okt 2026
 - Perbaikan "ytdl-core/youtubei belum terpasang" di Android: Node 18 tidak punya `File`, `CustomEvent`, `Array.toSorted`, `Promise.withResolvers`, dll yang dibutuhkan library terbaru -> ditambal (lib/node18-compat.js). Pesan error kini menyebut penyebab asli pemuatan library.
 - Gacha: gambar dikirim lewat unduhan sendiri, lalu lewat link langsung bila gagal; galat dicatat di log ([gacha] ...). `#diag` menguji gambar anime & pemuatan ytdl-core.

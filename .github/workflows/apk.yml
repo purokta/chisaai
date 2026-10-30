@@ -79,6 +79,7 @@ jobs:
           rm -rf node_modules/@img node_modules/sharp node_modules/.cache
           find node_modules -type f \( -name '*.map' -o -name '*.md' -o -name '*.markdown' -o -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' -o -name '*.tsbuildinfo' -o -name '*.flow' \) -delete
           find node_modules -mindepth 2 -type d \( -name test -o -name tests -o -name __tests__ -o -name example -o -name examples -o -name docs -o -name .github \) -prune -exec rm -rf {} + 2>/dev/null || true
+          node "$GITHUB_WORKSPACE/scripts/patch-regex.js" node_modules
           du -sh node_modules | sed 's/^/node_modules sesudah: /'
           cd /tmp/stage
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
