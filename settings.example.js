@@ -7,13 +7,13 @@
 module.exports = {
   owner: {
     name: 'shipur',
-    number: '085746960982', // boleh format 08xx atau 628xx
+    number: '', // isi nomor owner (08xx atau 628xx). Di aplikasi APK diisi lewat tab Pengaturan, tidak perlu diedit di sini
     about: 'Pembuat & pemilik CHISA-AI',
     tiktok: 'dzzhipur' // ditampilkan di profil owner (nomor owner disembunyikan)
   },
 
   // VIP: tetap dilayani saat mode SELF (#self / #private). Bisa juga ditambah lewat chat: #vip add 08xxx
-  vip: [{ name: 'VIP 1', number: '+62 857-3030-1386' }],
+  vip: [], // contoh: [{ name: 'Teman', number: '08xxxxxxxxxx' }]
 
   // Kalau owner/VIP tidak dikenali di grup: ketik #myid, lalu tempel angka LID-nya di sini
   ownerLids: [],

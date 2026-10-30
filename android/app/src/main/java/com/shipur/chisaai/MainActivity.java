@@ -312,6 +312,7 @@ public class MainActivity extends BaseActivity {
 
     @Override protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
+        if (req == REQ_ICON && res == RESULT_OK && data != null && data.getData() != null) { handleIconPick(data); return; }
         if (req < 101 || req > 104 || res != RESULT_OK || data == null || data.getData() == null) return;
         final int slot = req - 100; final Uri u = data.getData();
         Toast.makeText(this, "Memproses banner " + slot + "…", Toast.LENGTH_SHORT).show();
@@ -621,9 +622,7 @@ public class MainActivity extends BaseActivity {
         recreate();
     }
 
-    @Override protected void onActivityResult(int req, int res, Intent data) {
-        super.onActivityResult(req, res, data);
-        if (req != REQ_ICON || res != RESULT_OK || data == null || data.getData() == null) return;
+    private void handleIconPick(Intent data) {
         try (java.io.InputStream in = getContentResolver().openInputStream(data.getData())) {
             Bitmap src = BitmapFactory.decodeStream(in);
             if (src == null) throw new Exception("gambar tidak terbaca");

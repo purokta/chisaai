@@ -1,3 +1,9 @@
+## 3.10.4 — 30 Okt 2026
+- Nomor owner/VIP dihapus dari script (settings.example.js). Nomor WA bot, owner, dan token Telegram cukup diisi di aplikasi (tab Pengaturan).
+
+## 3.10.3 — 30 Okt 2026
+- Perbaikan build APK: `onActivityResult` terdefinisi ganda di MainActivity (kompilasi Java gagal). Pilih gambar ikon custom dan banner kini lewat satu handler.
+
 ## 3.10.2 — 30 Okt 2026
 - Workflow APK: kegagalan gradle tidak lagi tersamar (langkah `cp` ikut gagal); penyebab error ditampilkan di langkah "Tampilkan penyebab error".
 
