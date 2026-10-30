@@ -24,6 +24,7 @@ try {
   process.chdir(__dirname)
   // Node 18 belum punya crypto global (dipakai Baileys terbaru)
   if (!globalThis.crypto) globalThis.crypto = require('crypto').webcrypto
+  require('./lib/node18-compat').install()
   w('[js] memuat index.js…')
   require('./index.js')
   w('[js] index.js dimuat')

@@ -1,3 +1,7 @@
+## 3.10.7 — 30 Okt 2026
+- Perbaikan "ytdl-core/youtubei belum terpasang" di Android: Node 18 tidak punya `File`, `CustomEvent`, `Array.toSorted`, `Promise.withResolvers`, dll yang dibutuhkan library terbaru -> ditambal (lib/node18-compat.js). Pesan error kini menyebut penyebab asli pemuatan library.
+- Gacha: gambar dikirim lewat unduhan sendiri, lalu lewat link langsung bila gagal; galat dicatat di log ([gacha] ...). `#diag` menguji gambar anime & pemuatan ytdl-core.
+
 ## 3.10.6 — 30 Okt 2026
 - APK lebih kecil: hanya arm64 (armeabi-v7a dibuang), biner sharp/libvips x64 dan dokumen/peta/tipe/tes di node_modules tidak ikut dipaketkan. Build mencetak ukuran komponen di log.
 - Play/unduh YouTube: library lokal dicoba lebih dulu (API pihak ketiga jadi cadangan). youtubei.js versi terbaru ditambahkan (dengan evaluator JS sendiri) dan mencoba beberapa klien YouTube bergantian; versi lama tetap jadi cadangan.

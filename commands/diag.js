@@ -48,6 +48,9 @@ module.exports = [{
       try { const r = await J.youtubeAny('https://www.youtube.com/watch?v=jNQXAC9IVRw', 'audio', dir); return fs.statSync(r.file).size + ' byte' }
       finally { try { fs.rmSync(dir, { recursive: true, force: true }) } catch {} }
     }, out)
+    await step('Muat ytdl-core', async () => { if (!lib('@distube/ytdl-core') && !lib('ytdl-core')) throw new Error(J.loadErr['@distube/ytdl-core'] || J.loadErr['ytdl-core'] || 'tidak ada'); return 'ok' }, out)
+    await step('Gambar anime (waifu.pics)', async () => { const u = await require('../lib/gacha').randomAnime(); if (!u) throw new Error('tanpa link'); const { buffer } = await http.getBuffer(u, { timeout: 12000, maxMB: 5 }); return buffer.length + ' byte' }, out)
+    await step('Gambar karakter (Jikan)', async () => { const g = require('../lib/gacha'); const u = await g.imageFor('Rem'); if (!u) throw new Error('tanpa link'); const { buffer } = await http.getBuffer(u, { timeout: 12000, maxMB: 5 }); return buffer.length + ' byte' }, out)
     await step('Cari YouTube', async () => { const r = await require('../chisa/lib/ytfallback').search('lofi', 2); if (!r.length) throw new Error('kosong'); return r[0].title }, out)
     out.push(`\nTotal ${Math.round(ms(t0) / 1000)} detik. Kirim hasil ini ke pengembang bila ada ❌.`)
     await ctx.reply(out.join('\n'))
