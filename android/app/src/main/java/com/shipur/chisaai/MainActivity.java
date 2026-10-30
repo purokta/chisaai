@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 
 /** Layar utama (Material You): Home, Terminal, Banner, Pengaturan. */
 public class MainActivity extends BaseActivity {
-    private static final int[] RAW = {R.raw.banner1, R.raw.banner2, R.raw.banner3, R.raw.banner4};
+    private static final int[] RAW = {R.raw.banner1}; // hanya banner utama yang bawaan; slot 2-4 kosong sampai diisi
     private static final Pattern PAIR = Pattern.compile("KODE PAIRING:\\s*([A-Z0-9]{4}-[A-Z0-9]{4})");
     private static final int GREEN = 0xFF7EE787, BLUE = 0xFF79C0FF, AMBER = 0xFFE3B341, RED = 0xFFFF7B72, PURPLE = 0xFFD2A8FF, CYAN = 0xFF56D4DD, GRAY = 0xFFC9D1D9, DIM = 0xFF8B949E;
 
@@ -294,7 +294,7 @@ public class MainActivity extends BaseActivity {
         for (int s = 1; s <= 4; s++) {
             final int slot = s;
             File cf = BannerStore.custom(this, s);
-            String sub = cf == null ? "Bawaan" : (cf.getName().endsWith(".mp4") ? "Video/GIF" : "Gambar") + " custom • " + (cf.length() / 1024) + " KB";
+            String sub = cf == null ? (s == 1 ? "Bawaan (banner utama / cadangan)" : "Kosong — memakai banner utama") : (cf.getName().endsWith(".mp4") ? "Video/GIF" : "Gambar") + " custom • " + (cf.length() / 1024) + " KB";
             View v = row(slotList, cf != null && !cf.getName().endsWith(".mp4") ? R.drawable.ic_image : R.drawable.ic_image, "Banner " + s, sub, null);
             MaterialButton a1 = v.findViewById(R.id.act1), a2 = v.findViewById(R.id.act2);
             a1.setVisibility(View.VISIBLE); a1.setText("Ganti");
@@ -331,7 +331,8 @@ public class MainActivity extends BaseActivity {
     private void playBanner() {
         if (surface == null || !alive || ytOn()) return;
         stopBanner();
-        int slot = bannerIdx % 4 + 1; bannerIdx++;
+        int slot = 1; // cari slot berikutnya yang ada isinya (custom), slot 1 selalu ada (bawaan)
+        for (int k = 0; k < 4; k++) { int s = bannerIdx % 4 + 1; bannerIdx++; if (s == 1 || BannerStore.custom(this, s) != null) { slot = s; break; } }
         File cf = BannerStore.custom(this, slot);
         try {
             if (cf != null && !cf.getName().endsWith(".mp4")) { // gambar: tampil 4 detik
@@ -667,7 +668,12 @@ public class MainActivity extends BaseActivity {
         ws.setJavaScriptEnabled(true); ws.setMediaPlaybackRequiresUserGesture(false); ws.setDomStorageEnabled(true);
         ytView.setBackgroundColor(0xFF000000);
         ytView.setWebChromeClient(new android.webkit.WebChromeClient());
-        ytView.setWebViewClient(new android.webkit.WebViewClient());
+        ws.setUserAgentString(ws.getUserAgentString().replace("; wv", "")); // UA WebView ("wv") kadang ditolak pemutar
+        ytView.setWebViewClient(new android.webkit.WebViewClient() {
+            @Override public void onReceivedError(android.webkit.WebView v, android.webkit.WebResourceRequest r, android.webkit.WebResourceError e) {
+                if (r.isForMainFrame()) Toast.makeText(MainActivity.this, "Banner YouTube gagal dimuat: " + e.getDescription() + ". Cek internet / coba video lain.", Toast.LENGTH_LONG).show();
+            }
+        });
         snd.setOnCheckedChangeListener((bv, on) -> { prefs.edit().putBoolean("ytSound", on).apply(); applyYt(); });
         en.setOnCheckedChangeListener((bv, on) -> {
             if (on && ytId(String.valueOf(link.getText())) == null) { bv.setChecked(false); Toast.makeText(this, "Isi link YouTube yang valid dulu", Toast.LENGTH_SHORT).show(); return; }
@@ -693,10 +699,11 @@ public class MainActivity extends BaseActivity {
         stopBanner(); h.removeCallbacks(nextBanner);
         bannerImg.setVisibility(View.GONE); banner.setVisibility(View.GONE); ytView.setVisibility(View.VISIBLE);
         String id = ytId(prefs.getString("ytLink", "")); boolean sound = prefs.getBoolean("ytSound", false);
-        String html = "<html><body style='margin:0;background:#000'><iframe style='position:absolute;inset:0;width:100%;height:100%;border:0' "
-                + "src='https://www.youtube.com/embed/" + id + "?autoplay=1&mute=" + (sound ? 0 : 1) + "&controls=0&loop=1&playlist=" + id
-                + "&playsinline=1&modestbranding=1&rel=0&start=" + prefs.getInt("ytStart", 0) + "' "
-                + "allow='autoplay; encrypted-media' allowfullscreen></iframe></body></html>";
-        ytView.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null);
+        // embed langsung dengan Referer (tanpa Referer YouTube menolak dengan "error 153")
+        String url = "https://www.youtube.com/embed/" + id + "?autoplay=1&mute=" + (sound ? 0 : 1) + "&controls=0&loop=1&playlist=" + id
+                + "&playsinline=1&modestbranding=1&rel=0&start=" + prefs.getInt("ytStart", 0) + "&origin=https://www.youtube.com";
+        java.util.Map<String, String> hd = new java.util.HashMap<>();
+        hd.put("Referer", "https://www.youtube.com/");
+        ytView.loadUrl(url, hd);
     }
 }

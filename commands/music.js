@@ -1,6 +1,8 @@
 const dl = require('../lib/downloader')
 const http = require('../lib/http')
 
+const { sendAudio } = require('../lib/audiosend')
+
 module.exports = [
   {
     name: 'play',
@@ -17,7 +19,7 @@ module.exports = [
       await ctx.reply(`🎵 *${v.title}*\n${v.channel || ''} • ${v.duration || ''}\n\n⏳ Mengunduh...`)
       const res = await dl.download(v.url, 'youtube', true)
       const f = res.files.find(x => x.type === 'audio') || res.files[0]
-      await ctx.send({ audio: f.buffer, mimetype: 'audio/mpeg', fileName: v.title + '.mp3' })
+      await sendAudio(ctx, f.buffer, v.title)
       await ctx.react('✅')
     }
   },

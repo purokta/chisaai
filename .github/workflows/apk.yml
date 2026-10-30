@@ -48,7 +48,7 @@ jobs:
           mkdir -p /tmp/nm
           gh release download -R nodejs-mobile/nodejs-mobile --pattern '*android*.zip' --dir /tmp/nm
           unzip -q /tmp/nm/*.zip -d /tmp/nm/x
-          for ABI in arm64-v8a armeabi-v7a; do
+          for ABI in arm64-v8a; do # hanya arm64 (HP modern) supaya APK jauh lebih kecil
             SO=$(find /tmp/nm/x -path "*/$ABI/libnode.so" | head -1)
             [ -n "$SO" ] || { echo "libnode.so $ABI tidak ditemukan"; find /tmp/nm/x | head -50; exit 1; }
             mkdir -p android/app/libnode/bin/$ABI
@@ -74,6 +74,12 @@ jobs:
           rsync -a --exclude=android --exclude=.git --exclude=.github --exclude=node_modules --exclude=docs ./ /tmp/stage/bot/
           cd /tmp/stage/bot
           npm install --omit=dev --legacy-peer-deps --ignore-scripts --no-audit --no-fund --loglevel=http
+          # perkecil: biner sharp/libvips untuk x64 tidak terpakai di Android; buang dokumen, peta, tipe, tes
+          du -sh node_modules | sed 's/^/node_modules sebelum: /'
+          rm -rf node_modules/@img node_modules/sharp node_modules/.cache
+          find node_modules -type f \( -name '*.map' -o -name '*.md' -o -name '*.markdown' -o -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' -o -name '*.tsbuildinfo' -o -name '*.flow' \) -delete
+          find node_modules -mindepth 2 -type d \( -name test -o -name tests -o -name __tests__ -o -name example -o -name examples -o -name docs -o -name .github \) -prune -exec rm -rf {} + 2>/dev/null || true
+          du -sh node_modules | sed 's/^/node_modules sesudah: /'
           cd /tmp/stage
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
           ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
@@ -89,6 +95,11 @@ jobs:
           file "$F" || true
           # hanya dipakai kalau benar-benar program ARM64; kalau bukan, dibuang supaya APK tetap bisa dipasang
           if ! file "$F" | grep -q 'ELF 64-bit.*aarch64'; then echo "ffmpeg tidak valid, dibuang"; rm -f "$F"; fi
+
+      - name: Ukuran komponen (untuk memantau besar APK)
+        run: |
+          echo "--- libnode / ffmpeg / bot.zip"
+          ls -la android/app/libnode/bin/*/ android/app/src/main/jniLibs/*/ android/app/src/main/assets/ 2>/dev/null || true
 
       - name: Build APK
         env:

@@ -1,3 +1,14 @@
+## 3.10.6 — 30 Okt 2026
+- APK lebih kecil: hanya arm64 (armeabi-v7a dibuang), biner sharp/libvips x64 dan dokumen/peta/tipe/tes di node_modules tidak ikut dipaketkan. Build mencetak ukuran komponen di log.
+- Play/unduh YouTube: library lokal dicoba lebih dulu (API pihak ketiga jadi cadangan). youtubei.js versi terbaru ditambahkan (dengan evaluator JS sendiri) dan mencoba beberapa klien YouTube bergantian; versi lama tetap jadi cadangan.
+
+## 3.10.5 — 30 Okt 2026
+- Voice note: musik menu kini bawaan OGG/Opus (assets/music.ogg), langsung terkirim tanpa ffmpeg; bila konversi perlu, ada encoder cadangan.
+- Play/unduh audio: mimetype dikenali dari isi berkas (m4a/ogg/mp3), webm dikonversi bila ffmpeg ada — tidak lagi "audio tidak bisa diputar".
+- Banner: hanya banner1 bawaan; slot 2-4 lewat `#setbanner <slot> <link YouTube>`. Banner YouTube di aplikasi memakai header Referer.
+- `#diag` (owner): tes ffmpeg, voice note, YouTube, jaringan, kecepatan kirim — kirim hasilnya bila ada yang gagal.
+- WhatsApp delay: aplikasi menahan WiFi tetap aktif (WifiLock); bot mencatat `[lambat]` bila pesan tiba >5 dtk setelah dikirim.
+
 ## 3.10.4 — 30 Okt 2026
 - Nomor owner/VIP dihapus dari script (settings.example.js). Nomor WA bot, owner, dan token Telegram cukup diisi di aplikasi (tab Pengaturan).
 

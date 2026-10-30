@@ -2,7 +2,7 @@ FOLDER ASSETS - thumbnail & musik menu, bisa kamu ganti sendiri
 ================================================================
 #menu memakai dua hal:
 
-  banner1-4  = 4 video pendek (mp4, maks 10 detik) di atas menu; berganti tiap ada yang mengetik menu
+  banner1 = banner utama bawaan; banner2-4 kosong (isi sendiri, mis. #setbanner 2 <link YouTube>); berganti tiap ada yang mengetik menu
   thumbnail  = gambar di atas menu   (jpg / png / webp)
   music      = musik menu, dikirim sebagai VOICE NOTE otomatis setelah menu (mp3 / m4a / ogg / opus / wav; otomatis dikonversi, maks 3 menit)
 

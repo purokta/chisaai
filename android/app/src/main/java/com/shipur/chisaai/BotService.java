@@ -31,6 +31,7 @@ public class BotService extends Service {
     static final String[] KEEP = {"settings.js", "session", "data", "assets/custom", "backup"};
     private boolean started = false;
     private PowerManager.WakeLock wl;
+    private android.net.wifi.WifiManager.WifiLock wfl;
 
     private void logLine(String m) {
         try (FileOutputStream o = new FileOutputStream(new File(getFilesDir(), "bot.log"), true)) { o.write(("[app] " + m + "\n").getBytes()); } catch (Exception ignored) { }
@@ -60,6 +61,10 @@ public class BotService extends Service {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "chisa:bot");
             wl.acquire();
+            try { // jaga WiFi tetap aktif saat layar mati supaya pesan WhatsApp tidak telat
+                android.net.wifi.WifiManager wm = (android.net.wifi.WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                if (wm != null) { wfl = wm.createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF, "chisa:wifi"); wfl.setReferenceCounted(false); wfl.acquire(); }
+            } catch (Throwable ignored) { }
             // Node butuh tumpukan memori besar (thread biasa hanya 1 MB)
             new Thread(null, this::runBot, "node", 8L * 1024 * 1024).start();
         }
@@ -244,5 +249,5 @@ public class BotService extends Service {
     }
 
     @Override
-    public void onDestroy() { if (wl != null && wl.isHeld()) wl.release(); }
+    public void onDestroy() { if (wl != null && wl.isHeld()) wl.release(); try { if (wfl != null && wfl.isHeld()) wfl.release(); } catch (Throwable ignored) { } }
 }

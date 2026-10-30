@@ -178,7 +178,7 @@ Tidak ada lagi pilihan mode: semua fitur selalu aktif dan menyatu sebagai **Chis
 - Sharp di Termux (android-arm64): `npm install --cpu=wasm32 sharp` lalu `npm install @img/sharp-wasm32 --legacy-peer-deps`. Kalau build wasm tidak bisa merender teks, brat otomatis memakai Jimp.
 
 ### v3.1.0
-- **Banner menu bergerak:** 4 video di `assets/banner1.mp4` … `banner4.mp4` (maks 10 detik, bawaan 8 detik, tampil seperti GIF), berganti setiap ada yang mengetik menu. Ganti dengan videomu di `assets/custom/banner1.mp4` … `banner4.mp4` (boleh 1–4 file, singkat, mis. 480p tanpa suara, maks 10 detik; aman dari update).
+- **Banner menu bergerak:** 1 banner utama bawaan `assets/banner1.mp4` (slot 2–4 kosong; isi lewat `#setbanner <slot> <link YouTube>` atau tab Banner di aplikasi) (maks 10 detik, bawaan 8 detik, tampil seperti GIF), berganti setiap ada yang mengetik menu. Ganti dengan videomu di `assets/custom/banner1.mp4` … `banner4.mp4` (boleh 1–4 file, singkat, mis. 480p tanpa suara, maks 10 detik; aman dari update).
 - **"Waiting for this message" hanya di HP kamu:** biasanya kunci enkripsi ke HP utama rusak. Kirim `#fixsesi` (owner): menghapus kunci lama (login aman) dan bot restart. Setelah itu kirim pesan lagi dari HP.
 - **Video Facebook blur:** Facebook sekarang diunduh lewat yt-dlp lebih dulu (kualitas sampai 720p, suara digabung); hasil dari API yang resolusinya rendah (<480p) dibandingkan dengan sumber lain dan dipilih yang paling tajam. Pastikan yt-dlp & ffmpeg terpasang: `pkg install yt-dlp ffmpeg -y`.
 - v3.1.1: log "Bad MAC / Closing session / Failed to decrypt" (dump panjang dari libsignal) disembunyikan sepenuhnya. Itu bukan error bot; kalau pesan di HP-mu masih "Waiting for this message", kirim `#fixsesi`.

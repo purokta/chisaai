@@ -29,7 +29,7 @@ const SHORT = {
   buatpack: 'buat pack stiker Chisa', pack: 'pack stiker Chisa', tambahpack: 'tambah stiker ke pack', hapuspack: 'hapus stiker dari pack',
   daily: 'login harian (koin & EXP)', gacha: 'gacha karakter anime', koleksi: 'koleksi karakter',
   owner: 'profil owner', pp: 'foto profil (reply)', search: 'cari info di internet', status: 'status bot & server',
- private: 'mode SELF (owner+VIP)', ban: 'blokir pengguna', unban: 'buka blokir', setlimit: 'atur limit harian', autodelete: 'atur waktu hapus otomatis pesan bot', limit: 'sisa jatah hari ini', backup: 'backup login', stop: 'matikan bot', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
+ private: 'mode SELF (owner+VIP)', ban: 'blokir pengguna', unban: 'buka blokir', setlimit: 'atur limit harian', autodelete: 'atur waktu hapus otomatis pesan bot', diag: 'diagnosa ffmpeg, play, jaringan', limit: 'sisa jatah hari ini', backup: 'backup login', stop: 'matikan bot', public: 'mode PUBLIC (semua)', autoreply: 'balasan AI on/off', vip: 'atur VIP'
 }
 
 const EMO = {

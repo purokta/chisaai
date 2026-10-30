@@ -13,7 +13,7 @@ android {
         targetSdk 33
         versionCode Integer.parseInt(System.getenv('APK_VERSION_CODE') ?: '1')
         versionName System.getenv('APK_VERSION_NAME') ?: '0.0.0'
-        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
+        ndk { abiFilters 'arm64-v8a' } // hanya arm64: APK jauh lebih kecil
         externalNativeBuild { cmake { cppFlags ''
             arguments '-DANDROID_STL=c++_shared' } } // libnode butuh libc++_shared
     }

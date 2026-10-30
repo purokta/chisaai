@@ -21,7 +21,7 @@ async function handle(ctx, forced, audio = false) {
     const cap = first ? caption : undefined
     first = false
     if (f.type === 'audio') {
-      await ctx.send({ audio: f.buffer, mimetype: 'audio/mpeg' })
+      await require('../lib/audiosend').sendAudio(ctx, f.buffer, 'audio')
     } else if (f.type === 'image') {
       await ctx.send({ image: f.buffer, caption: cap })
     } else if (f.buffer.length > BIG) {

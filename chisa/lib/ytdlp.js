@@ -229,6 +229,7 @@ async function fetchMedia(url, { kind = 'video', dir }) {
     const J = require('../../lib/jsdl'), pf = platformOf(url), errs = []
     if (pf === 'youtube') {
       try { const r = await J.youtubeFile(url, kind, dir); return { items: [{ file: r.file, kind: r.kind, info: normalize({ title: r.title, uploader: r.author, duration: r.duration }, url) }] } } catch (e) { errs.push('ytdl-core: ' + e.message) }
+      try { const r = await J.youtubeInnertube(url, kind, dir); return { items: [{ file: r.file, kind: r.kind, info: normalize({ title: r.title, uploader: r.author, duration: r.duration }, url) }] } } catch (e) { errs.push('youtubei: ' + e.message) }
       try { const r = await require('./ytfallback').youtube(url, kind, dir); return { items: [{ file: r.file, kind: kind === 'audio' ? 'audio' : 'video', info: normalize({ title: r.title }, url) }] } } catch (e) { errs.push('api: ' + e.message) }
     } else {
       try {
