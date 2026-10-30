@@ -1,3 +1,6 @@
+## 3.10.2 — 30 Okt 2026
+- Workflow APK: kegagalan gradle tidak lagi tersamar (langkah `cp` ikut gagal); penyebab error ditampilkan di langkah "Tampilkan penyebab error".
+
 ## 3.10.1 — 30 Okt 2026
 - Baru: `#autodelete` (owner) — atur lama hapus otomatis pesan bot: `#autodelete 30m`, `#autodelete wa 10m`, `#autodelete tg 2j`, `off`. Berlaku di WhatsApp (menu, atau `semua` untuk semua balasan) dan Telegram. Bawaan 1 jam.
 - Gacha: gambar anime selalu ditampilkan (cari gambar karakter, cadangan gambar anime acak); #summon (companion) ikut menampilkan gambar.

@@ -93,7 +93,9 @@ jobs:
       - name: Build APK
         env:
           APK_VERSION_CODE: ${{ github.run_number }}
+        shell: bash
         run: |
+          set -o pipefail
           export APK_VERSION_NAME=$(node -p "require('./package.json').version")
           gradle -p android assembleRelease --no-daemon --stacktrace 2>&1 | tee gradle-build.log
           cp android/app/build/outputs/apk/release/app-release.apk chisa-ai.apk
@@ -103,6 +105,12 @@ jobs:
           echo "--- tanda tangan"; "$BT/apksigner" verify --verbose --print-certs chisa-ai.apk | head -12 || true
           echo "--- info paket"; "$BT/aapt2" dump badging chisa-ai.apk | grep -E "^package|sdkVersion|targetSdk|native-code" || true
           echo "--- library"; unzip -l chisa-ai.apk | grep -E "\.so|bot.zip" || true
+
+      - name: Tampilkan penyebab error
+        if: failure()
+        run: |
+          echo "=============== PENYEBAB ==============="
+          grep -nE "error:|e: |What went wrong|Execution failed|AAPT|error \\(|not found|cannot find" -A6 gradle-build.log | head -80 || true
 
       - name: Simpan log kalau gagal
         if: failure()
