@@ -55,13 +55,13 @@ module.exports = [
         `💳 Saldo: ${fmt(r.balance)}\n\n` +
         `Pity SSR: ${r.pitySSR}/${gacha.cfg().pitySSR}\nBerikutnya: ${left}`
       let sent = false
-      if (r.img) {
-        try {
-          const { buffer } = await http.getBuffer(r.img, { timeout: 12000, maxMB: 5 })
-          await ctx.send({ image: buffer, caption: text, ...tgButtons(ctx) })
-          sent = true
-        } catch {}
+      const tryImg = async url => {
+        const { buffer } = await http.getBuffer(url, { timeout: 12000, maxMB: 5 })
+        await ctx.send({ image: buffer, caption: text, ...tgButtons(ctx) })
+        sent = true
       }
+      try { await tryImg(await gacha.imageFor(r.name, r.img)) } catch {}
+      if (!sent) { try { const u = await gacha.randomAnime(); if (u) await tryImg(u) } catch {} }
       if (!sent) await ctx.send({ text, ...tgButtons(ctx) })
     }
   },

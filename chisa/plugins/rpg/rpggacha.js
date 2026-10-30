@@ -47,7 +47,17 @@ module.exports = {
         R.track(u, 'gacha')
       }
       if (!u.comp.active) { u.comp.active = res[0].id; t += `\n_${res[0].n} otomatis dipasang._` }
-      R.save(); return reply(t + `\n\n🎟️ Tiket dipakai ${tickets} • 💰 -${R.fmt(gold)}\nLihat koleksi: ${prefix}companion`)
+      R.save()
+      const cap = t + `\n\n🎟️ Tiket dipakai ${tickets} • 💰 -${R.fmt(gold)}\nLihat koleksi: ${prefix}companion`
+      try { // sertakan gambar anime
+        const g = require('../../../lib/gacha'), http = require('../../../lib/http')
+        const url = await g.randomAnime()
+        if (url && ctx.sock?.sendMessage) {
+          const { buffer } = await http.getBuffer(url, { timeout: 12000, maxMB: 5 })
+          return await ctx.sock.sendMessage(ctx.from || ctx.m?.chat || ctx.m?.key?.remoteJid, { image: buffer, caption: cap }, { quoted: ctx.m })
+        }
+      } catch {}
+      return reply(cap)
     }
 
     if (['companion', 'waifu'].includes(command)) {

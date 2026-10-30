@@ -15,6 +15,11 @@ on:
 permissions:
   contents: write
 
+# push + Run workflow bersamaan bisa saling tabrak saat menerbitkan rilis; yang lama dibatalkan
+concurrency:
+  group: apk-build
+  cancel-in-progress: true
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -90,7 +95,7 @@ jobs:
           APK_VERSION_CODE: ${{ github.run_number }}
         run: |
           export APK_VERSION_NAME=$(node -p "require('./package.json').version")
-          gradle -p android assembleRelease --no-daemon
+          gradle -p android assembleRelease --no-daemon --stacktrace 2>&1 | tee gradle-build.log
           cp android/app/build/outputs/apk/release/app-release.apk chisa-ai.apk
           cp chisa-ai.apk "chisa-ai-v${APK_VERSION_NAME}.apk"
           ls -la chisa-ai*.apk
@@ -98,6 +103,16 @@ jobs:
           echo "--- tanda tangan"; "$BT/apksigner" verify --verbose --print-certs chisa-ai.apk | head -12 || true
           echo "--- info paket"; "$BT/aapt2" dump badging chisa-ai.apk | grep -E "^package|sdkVersion|targetSdk|native-code" || true
           echo "--- library"; unzip -l chisa-ai.apk | grep -E "\.so|bot.zip" || true
+
+      - name: Simpan log kalau gagal
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-gagal
+          path: |
+            gradle-build.log
+            android/app/build/reports/**
+          if-no-files-found: ignore
 
       - name: Nama berkas berversi
         id: ver
