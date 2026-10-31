@@ -1,3 +1,10 @@
+## 3.12.3 — 31 Okt 2026
+- Lebih cepat: balasan di grup tidak lagi menunggu pengambilan metadata grup dari WhatsApp tiap pesan (cache sendiri, otomatis diperbarui saat grup berubah); pengecekan limit harian tidak lagi membuat formatter tanggal tiap pesan.
+
+## 3.12.2 — 31 Okt 2026
+- Mode root: di HP yang sudah di-root, bot menjalankan ffmpeg / ffprobe / yt-dlp milik Termux lewat `su` (tidak kena pembatasan aplikasi). Termux cukup terpasang, tidak perlu dibuka. Pasang di Termux: `pkg install ffmpeg yt-dlp`, lalu beri izin root ke CHISA-AI di Magisk/KernelSU.
+- Urutan di Android: ffmpeg bawaan APK (bila lolos uji) → root → alat Termux → lokal. #diag menampilkan tes "Mode root".
+
 ## 3.12.1 — 31 Okt 2026
 - Stiker animasi: video/GIF kembali jadi stiker bergerak bila ffmpeg tersedia (bawaan APK atau Termux); tanpa ffmpeg tetap stiker diam.
 - #play: judul lagu, channel, dan durasi dikirim sebagai pesan tersendiri (tidak ikut terhapus auto-delete); nama berkas audio memakai judul lagu.

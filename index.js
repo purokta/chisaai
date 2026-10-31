@@ -65,8 +65,11 @@ async function start() {
     generateHighQualityLinkPreview: false,
     shouldSyncHistoryMessage: () => false,
     msgRetryCounterCache: retryCounter,
-    getMessage: async key => store.get(key?.id)
+    getMessage: async key => store.get(key?.id),
+    // metadata grup dari cache sendiri: balasan di grup tidak menunggu WhatsApp tiap pesan
+    cachedGroupMetadata: async jid => group.forBaileys(sock, jid)
   })
+  sock.ev.on('groups.update', us => { for (const u of us || []) if (u?.id) group.invalidate(u.id) })
 
   // dipakai pengirim yang melewati sendMessage (mis. memakai ulang media banner)
   sock.trackSent = (key, message) => {
