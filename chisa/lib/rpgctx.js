@@ -15,6 +15,9 @@ function need(ctx) {
   const u = R.get(ctx.m.sender)
   if (!u) { ctx.reply(`⚔️ Kamu belum punya karakter petualang!\nKetik *${ctx.prefix}rpgstart* untuk memilih class dan mulai.`); return null }
   if (ctx.pushname && ctx.pushname !== 'no name') u.name = ctx.pushname
+  if (ctx.isOwner) { // owner bot: gold & tiket tidak pernah habis
+    u.gold = Math.max(u.gold || 0, 99999999); u.inv = u.inv || {}; u.inv.summon_ticket = Math.max(u.inv.summon_ticket || 0, 99999)
+  }
   return u
 }
 const avCache = new Map()   // cache foto profil 10 menit supaya tiap fitur tidak menembak WhatsApp berulang

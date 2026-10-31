@@ -123,6 +123,7 @@ public class BotService extends Service {
             Os.setenv("HOME", files.getAbsolutePath(), true);
             Os.setenv("TMPDIR", getCacheDir().getAbsolutePath(), true);
             Os.setenv("CHISA_TMP", getCacheDir().getAbsolutePath(), true);
+            try { new Converter(getCacheDir()).start(); Os.setenv("CHISA_CONV", "http://127.0.0.1:" + Converter.PORT, true); } catch (Throwable t) { logLine("konverter gambar gagal dimulai: " + t); }
             Os.setenv("PATH", bin.getAbsolutePath() + ":" + System.getenv("PATH"), true);
             Os.setenv("CHISA_SUPERVISED", "1", true);
             Os.setenv("CHISA_ANDROID", "1", true);
@@ -228,7 +229,8 @@ public class BotService extends Service {
         SharedPreferences p = getSharedPreferences("cfg", 0);
         JSONObject o = new JSONObject();
         JSONObject owner = new JSONObject();
-        owner.put("name", "shipur");
+        owner.put("name", p.getString("ownerName", "shipur"));
+        owner.put("about", p.getString("ownerBio", "Pembuat & pemilik CHISA-AI"));
         owner.put("number", p.getString("ownerNumber", ""));
         owner.put("tiktok", "dzzhipur");
         o.put("owner", owner);

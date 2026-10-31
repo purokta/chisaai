@@ -15,6 +15,12 @@ module.exports = {
     if (o.about) card += `\n${o.about}\n`
     if (tiktok) card += `\nhttps://www.tiktok.com/@${tiktok}`
 
+    // foto owner yang dipilih di aplikasi (tab Tentang) dipakai lebih dulu
+    try {
+      const f = require('path').join(__dirname, '..', 'assets', 'custom', 'ownerpp.jpg')
+      const fs = require('fs')
+      if (fs.existsSync(f) && fs.statSync(f).size > 0) return await ctx.send({ image: fs.readFileSync(f), caption: card })
+    } catch {}
     let url = null
     try {
       url = await sock.profilePictureUrl(o.number + '@s.whatsapp.net', 'image')

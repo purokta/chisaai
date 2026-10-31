@@ -13,13 +13,24 @@ module.exports = [
     async run(ctx) {
       if (!ctx.query) return ctx.reply(`Contoh: ${ctx.prefix}play judul lagu`)
       await ctx.react('🔎')
-      const r = await dl.ytSearch(ctx.query, 1)
+      const r = await dl.ytSearch(ctx.query, 4)
       if (!r.length) return ctx.reply('Lagu tidak ditemukan.')
-      const v = r[0]
-      await ctx.reply(`🎵 *${v.title}*\n${v.channel || ''} • ${v.duration || ''}\n\n⏳ Mengunduh...`)
-      const res = await dl.download(v.url, 'youtube', true)
-      const f = res.files.find(x => x.type === 'audio') || res.files[0]
-      await sendAudio(ctx, f.buffer, v.title)
+      // coba hasil teratas; kalau gagal (diblokir/khusus login/terlalu panjang) lanjut ke hasil berikutnya
+      const mins = d => { const p = String(d || '').split(':').map(Number); return p.some(isNaN) ? 0 : p.reduce((a, x) => a * 60 + x, 0) / 60 }
+      const cand = r.filter(v => mins(v.duration) <= 20).concat(r.filter(v => mins(v.duration) > 20)).slice(0, 3)
+      const errs = []
+      let sent = false
+      for (const v of cand) {
+        try {
+          await ctx.reply(`⏳ 🎵 *${v.title}*\n${v.channel || ''} • ${v.duration || ''}\n\nMengunduh...`)
+          const res = await dl.download(v.url, 'youtube', true)
+          const f = res.files.find(x => x.type === 'audio') || res.files[0]
+          await sendAudio(ctx, f.buffer, v.title)
+          sent = true
+          break
+        } catch (e) { errs.push(String(e?.userMessage || e?.message || e).split('\n')[0].slice(0, 120)); console.log('[play] gagal:', v.url, errs[errs.length - 1]) }
+      }
+      if (!sent) return ctx.reply('❌ Lagu tidak bisa diunduh sekarang.\n' + errs.map(x => '• ' + x).join('\n') + '\n\nCoba judul lain atau kirim link: ' + ctx.prefix + 'ytmp3 <link>')
       await ctx.react('✅')
     }
   },

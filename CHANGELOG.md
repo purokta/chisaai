@@ -1,3 +1,11 @@
+## 3.11.0 — 31 Okt 2026
+- Aplikasi: 4 tab — Home, Terminal, Pengaturan (sekarang memuat Tampilan, Ikon, Banner & YouTube, Bot, GitHub), Tentang (pengembang + foto/nama/bio owner bot yang bisa diganti). Ikon aplikasi bawaan memakai gambarmu.
+- Stiker diperbaiki di Android: konversi gambar lewat server lokal di aplikasi (ffmpeg diblokir Android). Video/GIF jadi stiker diam (animasi belum didukung). Perintah #toimg untuk stiker diam juga jalan.
+- Owner bot: koin, tiket gacha, gold RPG, dan limit selalu 99999+.
+- Telegram: bawaan hanya pesan sementara (⏳ 🔎) yang dihapus; menu, lagu, gacha dan hasil lain tetap. `#autodelete tg menu` untuk ikut menghapus menu.
+- #play: mencoba beberapa hasil pencarian & lebih banyak klien YouTube (ANDROID_VR, TV, …); peringatan parser youtubei didiamkan; galat tiap percobaan ditampilkan.
+- Perintah #owner memakai foto owner dari aplikasi.
+
 ## 3.10.9 — 31 Okt 2026
 - ffmpeg dibuang dari APK (bawaan): biner statis glibc dimatikan Android (SIGSYS), jadi tidak pernah jalan; APK jauh lebih kecil. Voice note menu sudah OGG siap kirim; thumbnail memakai JPEG apa adanya; `#setbanner` memakai video pendek utuh (≤ 3 menit) bila ffmpeg tidak ada.
 - Gacha/summon: gambar dari beberapa sumber bergantian (AniList, nekos.best, waifu.pics, waifu.im, nekos.life); `#diag` menunjukkan sumber mana yang gagal.

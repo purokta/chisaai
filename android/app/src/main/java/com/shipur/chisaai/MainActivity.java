@@ -78,7 +78,7 @@ public class MainActivity extends BaseActivity {
     private final Runnable nextBanner = this::playBanner;
     private SharedPreferences prefs;
     private boolean alive = true;
-    private static final int REQ_ICON = 77;
+    private static final int REQ_ICON = 77, REQ_PP = 78;
     private String lastLogShown = "";
 
     @Override
@@ -87,11 +87,11 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         prefs = getSharedPreferences("cfg", 0);
 
-        pages = new View[]{findViewById(R.id.pageHome), findViewById(R.id.pageTerm), findViewById(R.id.pageBanner), findViewById(R.id.pageSet)};
+        pages = new View[]{findViewById(R.id.pageHome), findViewById(R.id.pageTerm), findViewById(R.id.pageSet), findViewById(R.id.pageAbout)};
         nav = findViewById(R.id.nav);
         nav.setOnItemSelectedListener(it -> {
             int id = it.getItemId();
-            show(id == R.id.nav_home ? 0 : id == R.id.nav_term ? 1 : id == R.id.nav_banner ? 2 : 3);
+            show(id == R.id.nav_home ? 0 : id == R.id.nav_term ? 1 : id == R.id.nav_set ? 2 : 3);
             return true;
         });
 
@@ -126,6 +126,7 @@ public class MainActivity extends BaseActivity {
 
         setupLook();
         setupYt();
+        setupAbout();
         toggle.setOnClickListener(v -> toggle());
         findViewById(R.id.power).setOnClickListener(v -> toggle());
         findViewById(R.id.openLog).setOnClickListener(v -> startActivity(new Intent(this, LogActivity.class)));
@@ -310,6 +311,7 @@ public class MainActivity extends BaseActivity {
 
     @Override protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
+        if (req == REQ_PP && res == RESULT_OK && data != null && data.getData() != null) { handlePpPick(data); return; }
         if (req == REQ_ICON && res == RESULT_OK && data != null && data.getData() != null) { handleIconPick(data); return; }
         if (req < 101 || req > 104 || res != RESULT_OK || data == null || data.getData() == null) return;
         final int slot = req - 100; final Uri u = data.getData();
@@ -545,7 +547,7 @@ public class MainActivity extends BaseActivity {
 
     // ---------- tampilan: warna, mode, ikon ----------
     private static final String[] ICON_KEYS = {"Default", "Sakura", "Midnight", "Sky", "Mint", "Cream"};
-    private static final String[] ICON_NAMES = {"Klasik", "Sakura", "Malam", "Langit", "Mint", "Krem"};
+    private static final String[] ICON_NAMES = {"Chisa", "Sakura", "Malam", "Langit", "Mint", "Krem"};
     private static final int[] ICON_RES = {R.mipmap.ic_launcher, R.mipmap.ic_launcher_sakura, R.mipmap.ic_launcher_midnight, R.mipmap.ic_launcher_sky, R.mipmap.ic_launcher_mint, R.mipmap.ic_launcher_cream};
 
     private int dp(int v) { return Math.round(v * getResources().getDisplayMetrics().density); }
@@ -749,5 +751,54 @@ public class MainActivity extends BaseActivity {
             mp.setOnErrorListener((m, w, e) -> { stopBanner(); h.postDelayed(nextBanner, 3000); return true; });
             mp.prepareAsync();
         } catch (Exception e) { stopBanner(); h.postDelayed(nextBanner, 3000); }
+    }
+
+    // ---------- Tentang: pengembang + foto/nama owner bot ----------
+    private File ownerPpFile() { return new File(BannerStore.dir(this), "ownerpp.jpg"); }
+
+    private void showOwner() {
+        ImageView iv = findViewById(R.id.ownerPp);
+        File f = ownerPpFile();
+        Bitmap bm = f.length() > 0 ? BitmapFactory.decodeFile(f.getPath()) : null;
+        if (bm != null) iv.setImageBitmap(bm); else iv.setImageResource(R.drawable.owner_pp_default);
+        ((TextView) findViewById(R.id.ownerNameShow)).setText(prefs.getString("ownerName", "shipur"));
+        String bio = prefs.getString("ownerBio", "Pembuat & pemilik CHISA-AI");
+        TextView b = findViewById(R.id.ownerBioShow); b.setText(bio); b.setVisibility(bio.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    private void setupAbout() {
+        ((TextView) findViewById(R.id.aboutVersion)).setText("Versi " + BuildConfig.VERSION_NAME + " • build " + BuildConfig.VERSION_CODE);
+        TextInputEditText nm = findViewById(R.id.ownerName), bi = findViewById(R.id.ownerBio);
+        nm.setText(prefs.getString("ownerName", "shipur")); bi.setText(prefs.getString("ownerBio", "Pembuat & pemilik CHISA-AI"));
+        showOwner();
+        findViewById(R.id.ownerPpPick).setOnClickListener(v -> {
+            Intent p = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
+            try { startActivityForResult(Intent.createChooser(p, "Pilih foto owner"), REQ_PP); } catch (Exception e) { Toast.makeText(this, "Tidak ada pemilih gambar", Toast.LENGTH_SHORT).show(); }
+        });
+        findViewById(R.id.ownerPpReset).setOnClickListener(v -> { ownerPpFile().delete(); showOwner(); Toast.makeText(this, "Foto dikembalikan ke bawaan", Toast.LENGTH_SHORT).show(); });
+        findViewById(R.id.ownerSave).setOnClickListener(v -> {
+            String n = String.valueOf(nm.getText()).trim(), b = String.valueOf(bi.getText()).trim();
+            prefs.edit().putString("ownerName", n.isEmpty() ? "shipur" : n).putString("ownerBio", b).apply();
+            showOwner(); Toast.makeText(this, "Profil tersimpan", Toast.LENGTH_SHORT).show();
+        });
+        findViewById(R.id.linkGithub).setOnClickListener(v -> openLink("https://github.com/purokta/chisaai"));
+        findViewById(R.id.linkTiktok).setOnClickListener(v -> openLink("https://www.tiktok.com/@dzzhipur"));
+    }
+
+    private void openLink(String url) {
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception e) { Toast.makeText(this, "Tidak bisa membuka link", Toast.LENGTH_SHORT).show(); }
+    }
+
+    private void handlePpPick(Intent data) {
+        try (java.io.InputStream in = getContentResolver().openInputStream(data.getData())) {
+            Bitmap src = BitmapFactory.decodeStream(in);
+            if (src == null) throw new Exception("gambar tidak terbaca");
+            int s = Math.min(src.getWidth(), src.getHeight());
+            Bitmap sq = Bitmap.createBitmap(src, (src.getWidth() - s) / 2, (src.getHeight() - s) / 2, s, s);
+            sq = Bitmap.createScaledBitmap(sq, 512, 512, true);
+            try (java.io.FileOutputStream o = new java.io.FileOutputStream(ownerPpFile())) { sq.compress(Bitmap.CompressFormat.JPEG, 90, o); }
+            showOwner();
+            Toast.makeText(this, "Foto owner diganti", Toast.LENGTH_SHORT).show();
+        } catch (Throwable t) { Toast.makeText(this, "Gagal: " + t.getMessage(), Toast.LENGTH_LONG).show(); }
     }
 }
