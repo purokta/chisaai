@@ -25,6 +25,7 @@ module.exports = [
           await ctx.reply(`⏳ 🎵 *${v.title}*\n${v.channel || ''} • ${v.duration || ''}\n\nMengunduh...`)
           const res = await dl.download(v.url, 'youtube', true)
           const f = res.files.find(x => x.type === 'audio') || res.files[0]
+          await ctx.send(`🎵 *${v.title}*\n${v.channel || ''} • ${v.duration || ''}`)
           await sendAudio(ctx, f.buffer, v.title)
           sent = true
           break

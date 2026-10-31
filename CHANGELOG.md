@@ -1,3 +1,8 @@
+## 3.12.1 — 31 Okt 2026
+- Stiker animasi: video/GIF kembali jadi stiker bergerak bila ffmpeg tersedia (bawaan APK atau Termux); tanpa ffmpeg tetap stiker diam.
+- #play: judul lagu, channel, dan durasi dikirim sebagai pesan tersendiri (tidak ikut terhapus auto-delete); nama berkas audio memakai judul lagu.
+- #diag: tidak lagi mengirim audio tes; hanya memeriksa format hasil unduhan.
+
 ## 3.12.0 — 31 Okt 2026
 - ffmpeg kembali ke APK, kali ini dibangun untuk Android (NDK, arm64, dengan opus/mp3/x264/webp) oleh workflow Build APK — bukan biner glibc yang dimatikan Android. Build pertama +10 menit, berikutnya memakai cache. Bila gagal dibangun, APK tetap jadi tanpa ffmpeg. Aplikasi menguji ffmpeg saat bot mulai; bila jalan, dipakai langsung (tanpa Termux).
 - Alat Termux: aplikasi kini bisa memakai ffmpeg & yt-dlp milik Termux lewat server lokal (127.0.0.1:38918). Android melarang aplikasi menjalankannya sendiri, tapi Termux boleh. Pengaturan → "Nyalakan alat Termux" (pasang sekali: `pkg install nodejs ffmpeg yt-dlp`, lalu `allow-external-apps = true` di ~/.termux/termux.properties).

@@ -48,7 +48,7 @@ module.exports = [{
     const YT = 'https://www.youtube.com/watch?v=jNQXAC9IVRw'
     await step('YouTube jalur 1: ytdl-core', async () => { const d = fs.mkdtempSync(path.join(TMP, 'diag-')); try { const r = await J.youtubeFile(YT, 'audio', d); return fs.statSync(r.file).size + ' byte' } finally { try { fs.rmSync(d, { recursive: true, force: true }) } catch {} } }, out)
     await step('YouTube jalur 2: youtubei.js', async () => { const d = fs.mkdtempSync(path.join(TMP, 'diag-')); try { const r = await J.youtubeInnertube(YT, 'audio', d); return fs.statSync(r.file).size + ' byte' } finally { try { fs.rmSync(d, { recursive: true, force: true }) } catch {} } }, out)
-    await step('play/mp3 lengkap (downloader → kirim audio)', async () => { const r = await require('../lib/downloader').download(YT, 'youtube', true); const f = r.files.find(x => x.type === 'audio') || r.files[0]; await require('../lib/audiosend').sendAudio(ctx, f.buffer, 'tes-diag'); return f.buffer.length + ' byte terkirim' }, out)
+    await step('play/mp3 lengkap (downloader → cek format)', async () => { const r = await require('../lib/downloader').download(YT, 'youtube', true); const f = r.files.find(x => x.type === 'audio') || r.files[0]; const k = require('../lib/audiosend').audioKind(f.buffer); return f.buffer.length + ' byte, format ' + k.ext + ' (tidak dikirim)' }, out)
     await step('YouTube: unduh audio (semua jalur)', async () => {
       const dir = fs.mkdtempSync(path.join(TMP, 'diag-'))
       try { const r = await J.youtubeAny('https://www.youtube.com/watch?v=jNQXAC9IVRw', 'audio', dir); return fs.statSync(r.file).size + ' byte' }
