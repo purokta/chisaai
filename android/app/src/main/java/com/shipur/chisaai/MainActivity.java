@@ -108,6 +108,7 @@ public class MainActivity extends BaseActivity {
         apkBox = findViewById(R.id.apkBox);
         findViewById(R.id.apkCheck).setOnClickListener(v -> checkApk(true));
         findViewById(R.id.resetSession).setOnClickListener(v -> resetSession());
+        setupTermux();
         refreshGh();
         findViewById(R.id.ghUpdate).setOnClickListener(v -> manualUpdate());
         findViewById(R.id.ghRestore).setOnClickListener(v -> {
@@ -225,6 +226,85 @@ public class MainActivity extends BaseActivity {
                 runOnUiThread(() -> { if (alive && !ApkUpdater.install(this, f)) Toast.makeText(this, "Izinkan 'pasang aplikasi dari sumber ini' untuk CHISA-AI, lalu ketuk lagi.", Toast.LENGTH_LONG).show(); });
             } catch (Throwable t) { runOnUiThread(() -> Toast.makeText(this, "Gagal: " + t.getMessage(), Toast.LENGTH_LONG).show()); }
         }).start();
+    }
+
+    // ---------- Alat Termux (ffmpeg & yt-dlp lewat Termux) ----------
+    private static final int REQ_TERMUX = 79;
+
+    private void setupTermux() {
+        findViewById(R.id.termuxStart).setOnClickListener(v -> startTermuxTools());
+        findViewById(R.id.termuxHelp).setOnClickListener(v -> new android.app.AlertDialog.Builder(this)
+                .setTitle("Pasang alat Termux")
+                .setMessage("Android melarang aplikasi menjalankan ffmpeg/yt-dlp sendiri, tapi Termux boleh. Sekali saja di Termux:\n\n"
+                        + "1. pkg update && pkg install nodejs ffmpeg yt-dlp\n"
+                        + "2. mkdir -p ~/.termux && echo 'allow-external-apps = true' >> ~/.termux/termux.properties\n"
+                        + "3. Tutup Termux sepenuhnya lalu buka lagi.\n"
+                        + "4. Kembali ke sini, tekan \"Nyalakan alat Termux\" dan izinkan.\n\n"
+                        + "Setelah itu bot memakai ffmpeg & yt-dlp Termux otomatis. Termux harus tetap hidup (tarik notifikasinya jangan dihapus; atur baterai Termux ke 'Tanpa batasan').")
+                .setPositiveButton("Buka Termux", (d, w) -> { Intent i = getPackageManager().getLaunchIntentForPackage("com.termux"); if (i != null) startActivity(i); else Toast.makeText(this, "Termux belum terpasang.", Toast.LENGTH_LONG).show(); })
+                .setNegativeButton("Tutup", null).show());
+        checkTermux();
+    }
+
+    private void checkTermux() {
+        final TextView st = findViewById(R.id.termuxStatus);
+        new Thread(() -> {
+            String msg;
+            try {
+                java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL("http://127.0.0.1:38918/ping").openConnection();
+                c.setConnectTimeout(1200); c.setReadTimeout(1500);
+                BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream()));
+                String body = r.readLine(); r.close();
+                boolean ff = body != null && body.contains("\"ffmpeg\":true"), yt = body != null && body.contains("\"yt-dlp\":true");
+                msg = "✅ Aktif • ffmpeg " + (ff ? "ada" : "BELUM") + " • yt-dlp " + (yt ? "ada" : "BELUM");
+            } catch (Exception e) {
+                boolean has = false;
+                try { getPackageManager().getPackageInfo("com.termux", 0); has = true; } catch (Exception ignore) { }
+                msg = has ? "⏸ Belum aktif. Tekan tombol di bawah." : "Termux belum terpasang (opsional).";
+            }
+            final String m = msg;
+            runOnUiThread(() -> st.setText(m));
+        }).start();
+    }
+
+    private void startTermuxTools() {
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission("com.termux.permission.RUN_COMMAND") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{"com.termux.permission.RUN_COMMAND"}, REQ_TERMUX);
+            return;
+        }
+        try {
+            File js = new File(getFilesDir(), "bot/termux/chisa-tools.js");
+            if (!js.exists()) { Toast.makeText(this, "Berkas alat belum ada. Mulai bot sekali dulu.", Toast.LENGTH_LONG).show(); return; }
+            StringBuilder sb = new StringBuilder();
+            BufferedReader r = new BufferedReader(new InputStreamReader(new java.io.FileInputStream(js), "UTF-8"));
+            String ln; while ((ln = r.readLine()) != null) sb.append(ln).append('\n'); r.close();
+            // salin skrip ke Termux lalu jalankan (jika belum jalan)
+            String script = "mkdir -p ~/.chisa && cat > ~/.chisa/chisa-tools.js <<'CHISA_EOF'\n" + sb + "CHISA_EOF\n"
+                    + "termux-wake-lock 2>/dev/null\n"
+                    + "exec node ~/.chisa/chisa-tools.js\n";
+            Intent i = new Intent();
+            i.setClassName("com.termux", "com.termux.app.RunCommandService");
+            i.setAction("com.termux.RUN_COMMAND");
+            i.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
+            i.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-lc", script});
+            i.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+            i.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
+            Toast.makeText(this, "Menyalakan alat Termux…", Toast.LENGTH_SHORT).show();
+            new Handler(Looper.getMainLooper()).postDelayed(this::checkTermux, 3500);
+            new Handler(Looper.getMainLooper()).postDelayed(this::checkTermux, 8000);
+        } catch (Exception e) {
+            Toast.makeText(this, "Gagal: " + e.getMessage() + " — cek langkah 'Cara pasang'.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
+        super.onRequestPermissionsResult(code, perms, res);
+        if (code == REQ_TERMUX) {
+            if (res.length > 0 && res[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) startTermuxTools();
+            else Toast.makeText(this, "Izin ditolak. Pastikan Termux terpasang & allow-external-apps = true (lihat 'Cara pasang').", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void resetSession() {

@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       ffmpeg:
-        description: 'Sertakan ffmpeg (biasanya DIMATIKAN Android, bikin APK +puluhan MB). Biarkan mati'
+        description: 'Bangun & sertakan ffmpeg Android (arm64, dibuat dengan NDK; build pertama +10 menit, berikutnya cache)'
         type: boolean
-        default: false
+        default: true
   push:
     branches: [main]
     paths: ['package.json', 'android/**', '.github/workflows/apk.yml']
@@ -85,17 +85,32 @@ jobs:
           zip -qr9 "$GITHUB_WORKSPACE/android/app/src/main/assets/bot.zip" bot
           ls -la "$GITHUB_WORKSPACE/android/app/src/main/assets/"
 
-      - name: ffmpeg (nonaktif bawaan — biner statis glibc dimatikan Android lewat SIGSYS; aktifkan hanya untuk uji coba)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.ffmpeg }}
+      - name: ffmpeg Android (cache)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.ffmpeg }}
+        id: ffcache
+        uses: actions/cache@v4
+        with:
+          path: ffbuild/libffmpeg.so
+          key: ffmpeg-android-${{ hashFiles('scripts/build-ffmpeg-android.sh') }}
+
+      - name: ffmpeg Android (bangun dengan NDK)
+        if: ${{ (github.event_name != 'workflow_dispatch' || inputs.ffmpeg) && steps.ffcache.outputs.cache-hit != 'true' }}
         continue-on-error: true
         run: |
-          mkdir -p android/app/src/main/jniLibs/arm64-v8a
-          curl -fsSL -o android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-linux-arm64
-          chmod +x android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
-          F=android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
-          file "$F" || true
-          # hanya dipakai kalau benar-benar program ARM64; kalau bukan, dibuang supaya APK tetap bisa dipasang
-          if ! file "$F" | grep -q 'ELF 64-bit.*aarch64'; then echo "ffmpeg tidak valid, dibuang"; rm -f "$F"; fi
+          sudo apt-get install -y --no-install-recommends pkg-config nasm >/dev/null || true
+          bash scripts/build-ffmpeg-android.sh "$PWD/ffbuild/libffmpeg.so" 2>&1 | tail -40
+
+      - name: ffmpeg Android (pasang ke APK)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.ffmpeg }}
+        run: |
+          F=ffbuild/libffmpeg.so
+          if [ -f "$F" ] && file "$F" | grep -q 'ELF 64-bit.*ARM aarch64'; then
+            mkdir -p android/app/src/main/jniLibs/arm64-v8a
+            cp "$F" android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
+            ls -la android/app/src/main/jniLibs/arm64-v8a/libffmpeg.so
+          else
+            echo "ffmpeg tidak berhasil dibangun — APK tetap dibuat tanpa ffmpeg (jembatan Termux tetap bisa dipakai)"
+          fi
 
       - name: Ukuran komponen (untuk memantau besar APK)
         run: |

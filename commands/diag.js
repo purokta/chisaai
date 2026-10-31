@@ -57,6 +57,7 @@ module.exports = [{
     await step('Muat ytdl-core', async () => { if (!lib('@distube/ytdl-core') && !lib('ytdl-core')) throw new Error(J.loadErr['@distube/ytdl-core'] || J.loadErr['ytdl-core'] || 'tidak ada'); return 'ok' }, out)
     await step('Gambar anime (semua sumber)', async () => { const im = await require('../lib/animeimg').randomImage(); if (!im.buffer) throw new Error(im.errors.join(' | ').slice(0, 150)); return `${im.source} ${im.buffer.length} byte` + (im.errors.length ? ' (gagal: ' + im.errors.length + ')' : '') }, out)
     await step('Gambar karakter (Rem)', async () => { const im = await require('../lib/animeimg').imageFor('Rem'); if (!im.buffer) throw new Error(im.errors.join(' | ').slice(0, 150)); return `${im.source} ${im.buffer.length} byte` }, out)
+    if (process.env.CHISA_ANDROID) await step('Alat Termux (ffmpeg/yt-dlp)', async () => { const B = require('../lib/termuxbridge'); if (!(await B.ping(true))) throw new Error('belum aktif — Pengaturan → Nyalakan alat Termux'); const r = await B.run('ffmpeg', ['-version']); return String(r.stdout).split('\n')[0].slice(0, 60) }, out)
     await step('Cari YouTube', async () => { const r = await require('../chisa/lib/ytfallback').search('lofi', 2); if (!r.length) throw new Error('kosong'); return r[0].title }, out)
     out.push(`\nTotal ${Math.round(ms(t0) / 1000)} detik. Kirim hasil ini ke pengembang bila ada ❌.`)
     await ctx.reply(out.join('\n'))

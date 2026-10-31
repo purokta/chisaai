@@ -117,6 +117,7 @@ public class BotService extends Service {
                     java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(pr.getInputStream()));
                     String l1 = br.readLine(); pr.waitFor();
                     logLine("ffmpeg: " + (l1 == null ? "tidak ada keluaran (kode " + pr.exitValue() + ")" : l1));
+                    if (l1 != null && l1.toLowerCase().contains("ffmpeg")) Os.setenv("CHISA_FFMPEG_OK", "1", true);
                 } catch (Throwable t) { logLine("ffmpeg tidak bisa dijalankan: " + t.getMessage()); }
             }
             SharedPreferences p = getSharedPreferences("cfg", 0);
